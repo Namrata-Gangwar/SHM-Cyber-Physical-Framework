@@ -1,0 +1,860 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-mono);background:var(--color-background-tertiary);color:var(--color-text-primary)}
+.shell{display:flex;flex-direction:column;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.logo{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.badges{display:flex;gap:5px}
+.bdg{font-size:9px;padding:2px 8px;border-radius:20px;border:0.5px solid}
+.live{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--color-text-success)}
+.ldot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:lp 1.4s ease-in-out infinite}
+@keyframes lp{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* main layout */
+.body{display:grid;grid-template-columns:220px 1fr 200px;height:560px;overflow:hidden}
+.lp,.rp{background:var(--color-background-primary);padding:10px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.lp{border-right:0.5px solid var(--color-border-tertiary)}
+.rp{border-left:0.5px solid var(--color-border-tertiary)}
+.mid{display:flex;flex-direction:column;overflow:hidden;background:var(--color-background-secondary)}
+
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px}
+.ct{font-size:9px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.krow{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:10px}
+.krow:last-child{border-bottom:none}
+.kk{color:var(--color-text-secondary)}
+.kval{color:var(--color-text-primary);font-weight:500}
+.ok{color:var(--color-text-success)!important}
+.wn{color:var(--color-text-warning)!important}
+.er{color:var(--color-text-danger)!important}
+
+/* sliders */
+.sl-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sl-l{font-size:10px;color:var(--color-text-secondary);width:80px;flex-shrink:0}
+.sl-v{font-size:11px;font-weight:500;width:48px;text-align:right;color:var(--color-text-primary)}
+input[type=range]{flex:1;-webkit-appearance:none;height:4px;background:var(--color-border-secondary);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;cursor:pointer}
+.sl-kp::-webkit-slider-thumb{background:#ef5350}
+.sl-ki::-webkit-slider-thumb{background:#ffb74d}
+.sl-kd::-webkit-slider-thumb{background:#66bb6a}
+
+/* buttons */
+.abtn{width:100%;padding:6px;border-radius:var(--border-radius-md);border:0.5px solid;font-size:10px;cursor:pointer;font-family:var(--font-mono);margin-bottom:4px;font-weight:500;text-align:center;transition:opacity .15s}
+.abtn:hover{opacity:.8}
+.bg{border-color:var(--color-border-success);color:var(--color-text-success);background:var(--color-background-success)}
+.br2{border-color:var(--color-border-danger);color:var(--color-text-danger);background:var(--color-background-danger)}
+.bw{border-color:var(--color-border-warning);color:var(--color-text-warning);background:var(--color-background-warning)}
+.bb{border-color:var(--color-border-info);color:var(--color-text-info);background:var(--color-background-info)}
+
+/* canvases */
+.cnv-wrap{position:relative;overflow:hidden;flex:1}
+canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;font-size:9px;font-family:var(--font-mono);pointer-events:none;line-height:1.7}
+.htl{top:8px;left:10px;color:var(--color-text-info)}
+.htr{top:8px;right:10px;text-align:right}
+
+/* metric cards row */
+.mrow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);flex-shrink:0}
+.mc{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:7px 10px}
+.ml{font-size:9px;color:var(--color-text-secondary);margin-bottom:2px}
+.mv{font-size:18px;font-weight:500;line-height:1}
+.md{font-size:9px;color:var(--color-text-secondary);margin-top:2px}
+
+/* tab bar */
+.tbr{display:flex;gap:3px;padding:6px 8px 0;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0}
+.tb{font-size:9px;padding:4px 10px;border-radius:4px 4px 0 0;border:0.5px solid transparent;background:transparent;color:var(--color-text-secondary);cursor:pointer;font-family:var(--font-mono);position:relative;bottom:-1px;border-bottom:none}
+.tb.on{background:var(--color-background-secondary);border-color:var(--color-border-tertiary);border-bottom-color:var(--color-background-secondary);color:var(--color-text-info)}
+.pane{display:none;flex:1;overflow:hidden;flex-direction:column}
+.pane.on{display:flex}
+
+/* building diagram */
+.bld-wrap{position:relative;overflow:hidden}
+.eq-box{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px;margin-top:4px;font-size:10px;color:var(--color-text-secondary);line-height:1.7}
+.eq-box b{color:var(--color-text-primary)}
+.pid-status{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:var(--border-radius-md);font-size:10px;font-weight:500;margin-bottom:4px}
+.pid-on{background:var(--color-background-success);color:var(--color-text-success)}
+.pid-off{background:var(--color-background-danger);color:var(--color-text-danger)}
+
+/* legend */
+.leg{display:flex;gap:12px;padding:4px 10px;background:var(--color-background-primary);border-top:0.5px solid var(--color-border-tertiary);flex-shrink:0}
+.li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--color-text-secondary)}
+.lc{width:18px;height:2px;border-radius:1px;flex-shrink:0}
+
+/* alerts */
+.al-i{display:flex;gap:5px;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:10px}
+.al-i:last-child{border-bottom:none}
+.adot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:3px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.pl{animation:pulse 2s ease-in-out infinite}
+.bk{animation:blink .9s step-end infinite}
+</style>
+
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden">PID Active Structural Control Dashboard — real-time vibration suppression simulation for SHM framework</h2>
+
+<div class="shell">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="logo">PID Active Structural Control — SHM Framework</span>
+    <div class="badges">
+      <span class="bdg" style="border-color:#ef5350;color:#ef5350">Kp</span>
+      <span class="bdg" style="border-color:#ffb74d;color:#ffb74d">Ki</span>
+      <span class="bdg" style="border-color:#66bb6a;color:#66bb6a">Kd</span>
+      <span class="bdg" style="border-color:var(--color-text-info);color:var(--color-text-info)">MDOF solver</span>
+      <span class="bdg" style="border-color:#9c27b0;color:#9c27b0">AMD actuator</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="live"><span class="ldot"></span><span id="pid-status-top">PID: ACTIVE</span></div>
+    <span style="font-size:10px;color:var(--color-text-secondary)" id="clk">--:--:--</span>
+  </div>
+</div>
+
+<!-- METRIC ROW -->
+<div class="mrow">
+  <div class="mc"><div class="ml">Uncontrolled disp.</div><div class="mv er" id="m-unc">18.7 mm</div><div class="md">No control</div></div>
+  <div class="mc"><div class="ml">Controlled disp.</div><div class="mv ok" id="m-ctrl">6.2 mm</div><div class="md">With PID</div></div>
+  <div class="mc"><div class="ml">Reduction</div><div class="mv ok" id="m-red">66.8%</div><div class="md">Effectiveness</div></div>
+  <div class="mc"><div class="ml">Actuator force</div><div class="mv wn" id="m-force">284 kN</div><div class="md">AMD output</div></div>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+  <!-- LEFT -->
+  <div class="lp">
+    <div class="card">
+      <div class="ct">PID Controller</div>
+      <div id="pid-badge" class="pid-status pid-on">● PID ACTIVE — AMD running</div>
+      <div class="sl-row">
+        <span class="sl-l">Kp (Prop.)</span>
+        <input type="range" class="sl-kp" min="0" max="500" value="180" step="5" id="sl-kp" oninput="updatePID()">
+        <span class="sl-v" id="v-kp">180</span>
+      </div>
+      <div class="sl-row">
+        <span class="sl-l">Ki (Integ.)</span>
+        <input type="range" class="sl-ki" min="0" max="100" value="22" step="1" id="sl-ki" oninput="updatePID()">
+        <span class="sl-v" id="v-ki">22</span>
+      </div>
+      <div class="sl-row">
+        <span class="sl-l">Kd (Deriv.)</span>
+        <input type="range" class="sl-kd" min="0" max="200" value="95" step="5" id="sl-kd" oninput="updatePID()">
+        <span class="sl-v" id="v-kd">95</span>
+      </div>
+      <div class="eq-box">
+        u(t) = <b>Kp</b>·e + <b>Ki</b>·∫e·dt + <b>Kd</b>·ė<br>
+        e(t) = x_desired − x_actual
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Excitation input</div>
+      <div class="sl-row">
+        <span class="sl-l">Wind (m/s)</span>
+        <input type="range" min="0" max="60" value="39" step="1" id="sl-wind" oninput="updateExcite()">
+        <span class="sl-v" id="v-wind">39</span>
+      </div>
+      <div class="sl-row">
+        <span class="sl-l">Seismic PGA</span>
+        <input type="range" min="0" max="50" value="18" step="1" id="sl-pga" oninput="updateExcite()">
+        <span class="sl-v" id="v-pga">0.18g</span>
+      </div>
+      <div class="sl-row">
+        <span class="sl-l">Freq (Hz)</span>
+        <input type="range" min="1" max="20" value="214" step="1" id="sl-freq" oninput="updateExcite()">
+        <span class="sl-v" id="v-freq">2.14</span>
+      </div>
+      <div style="margin-top:6px">
+        <button class="abtn bg" onclick="setPreset('wind')">🌬 Wind load only</button>
+        <button class="abtn bw" onclick="setPreset('seismic')">🌍 Seismic MCE</button>
+        <button class="abtn br2" onclick="setPreset('resonance')">⚠ Resonance (worst)</button>
+        <button class="abtn bb" onclick="setPreset('combined')">⚡ Wind + Seismic</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Building (MDOF)</div>
+      <div class="krow"><span class="kk">Mass M</span><span class="kval">4,200 t</span></div>
+      <div class="krow"><span class="kk">Stiffness K</span><span class="kval">85 MN/m</span></div>
+      <div class="krow"><span class="kk">Damping ζ</span><span class="kval">3.82%</span></div>
+      <div class="krow"><span class="kk">Nat. freq f₁</span><span class="kval wn">2.14 Hz</span></div>
+      <div class="krow"><span class="kk">DOF</span><span class="kval">4 (MDOF)</span></div>
+      <div class="krow"><span class="kk">Solver dt</span><span class="kval">0.005 s</span></div>
+    </div>
+    <div class="card">
+      <div class="ct">Control actions</div>
+      <button class="abtn bg" onclick="setPID(true)">▶ Enable PID</button>
+      <button class="abtn br2" onclick="setPID(false)">■ Disable PID</button>
+      <button class="abtn bw" onclick="autoTune()">⚙ Auto-tune gains</button>
+      <button class="abtn bb" onclick="resetSim()">↺ Reset simulation</button>
+    </div>
+  </div>
+
+  <!-- CENTRE -->
+  <div class="mid">
+    <div class="tbr">
+      <button class="tb on" onclick="sw(this,'disp')">Displacement</button>
+      <button class="tb" onclick="sw(this,'phase')">Phase Portrait</button>
+      <button class="tb" onclick="sw(this,'bode')">Bode Plot</button>
+      <button class="tb" onclick="sw(this,'bldg')">Building Diagram</button>
+      <button class="tb" onclick="sw(this,'force')">Force & Error</button>
+    </div>
+
+    <!-- DISPLACEMENT TIME HISTORY -->
+    <div class="pane on" id="p-disp">
+      <div class="cnv-wrap" style="flex:1.6;background:#060d1a">
+        <canvas id="c-disp"></canvas>
+        <div class="hud htl">
+          <div>Displacement time history x(t)</div>
+          <div>MDOF Newmark-β solver · dt = 0.005 s</div>
+        </div>
+        <div class="hud htr">
+          <div class="er bk" id="h-warn">⚠ Near limit 1/250</div>
+          <div style="color:var(--color-text-info)">Target: x = 0 mm</div>
+        </div>
+      </div>
+      <div class="leg">
+        <div class="li"><div class="lc" style="background:#ef5350"></div>Uncontrolled (no PID)</div>
+        <div class="li"><div class="lc" style="background:#66bb6a"></div>Controlled (PID active)</div>
+        <div class="li"><div class="lc" style="background:#ffb74d;border-top:2px dashed #ffb74d;height:0"></div>Code limit ±20mm</div>
+        <div class="li"><div class="lc" style="background:#4fc3f7"></div>Actuator force (scaled)</div>
+        <div style="flex:1"></div>
+        <div style="font-size:9px;color:var(--color-text-secondary)">IS 456 · IS 1893 · FEMA P-58</div>
+      </div>
+      <div class="cnv-wrap" style="flex:0.6;background:#04080f;border-top:0.5px solid var(--color-border-tertiary)">
+        <canvas id="c-error"></canvas>
+        <div class="hud htl" style="top:4px;font-size:9px">PID error signal e(t) and control output u(t)</div>
+      </div>
+    </div>
+
+    <!-- PHASE PORTRAIT -->
+    <div class="pane" id="p-phase">
+      <div class="cnv-wrap" style="flex:1;background:#060d1a">
+        <canvas id="c-phase"></canvas>
+        <div class="hud htl">
+          <div>Phase portrait — x(t) vs ẋ(t)</div>
+          <div>Spiral to origin = stable controlled system</div>
+        </div>
+        <div class="hud htr" style="color:var(--color-text-secondary)">
+          <div>Stable attractor = PID working</div>
+          <div>Growing spiral = unstable (reduce gains)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BODE PLOT -->
+    <div class="pane" id="p-bode">
+      <div class="cnv-wrap" style="flex:1;background:#060d1a">
+        <canvas id="c-bode"></canvas>
+        <div class="hud htl">
+          <div>Bode plot — Frequency response</div>
+          <div>Magnitude + Phase vs frequency</div>
+        </div>
+        <div class="hud htr" style="color:var(--color-text-secondary)">
+          <div>Phase margin: <span class="ok" id="h-pm">42°</span></div>
+          <div>Gain margin: <span class="ok" id="h-gm">11.2 dB</span></div>
+          <div>Bandwidth: <span style="color:var(--color-text-info)" id="h-bw">3.8 Hz</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUILDING DIAGRAM -->
+    <div class="pane" id="p-bldg">
+      <div class="cnv-wrap" style="flex:1;background:#060d1a">
+        <canvas id="c-bldg"></canvas>
+        <div class="hud htl">
+          <div>4-DOF shear building model</div>
+          <div>Real-time deformed shape + actuator force</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORCE & ERROR -->
+    <div class="pane" id="p-force">
+      <div class="cnv-wrap" style="flex:1;background:#060d1a">
+        <canvas id="c-force"></canvas>
+        <div class="hud htl">
+          <div>PID component forces — Kp·e, Ki·∫e, Kd·ė</div>
+          <div>Shows contribution of each PID term</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="rp">
+    <div class="card">
+      <div class="ct">Performance metrics</div>
+      <div class="krow"><span class="kk">Settling time</span><span class="kval ok" id="r-settle">2.4 s</span></div>
+      <div class="krow"><span class="kk">Overshoot</span><span class="kval ok" id="r-over">8.2%</span></div>
+      <div class="krow"><span class="kk">Rise time</span><span class="kval" id="r-rise">0.38 s</span></div>
+      <div class="krow"><span class="kk">Steady-state err</span><span class="kval ok" id="r-sse">0.12 mm</span></div>
+      <div class="krow"><span class="kk">RMS (ctrl)</span><span class="kval ok" id="r-rms">3.8 mm</span></div>
+      <div class="krow"><span class="kk">RMS (no ctrl)</span><span class="kval er" id="r-rmsu">14.2 mm</span></div>
+      <div class="krow"><span class="kk">Phase margin</span><span class="kval ok" id="r-pm">42°</span></div>
+      <div class="krow"><span class="kk">Gain margin</span><span class="kval ok" id="r-gm">11.2 dB</span></div>
+      <div class="krow"><span class="kk">Stability</span><span class="kval ok" id="r-stab">STABLE</span></div>
+    </div>
+    <div class="card">
+      <div class="ct">AMD Actuator</div>
+      <div class="krow"><span class="kk">Type</span><span class="kval">Active Mass Damper</span></div>
+      <div class="krow"><span class="kk">Mass</span><span class="kval">420 t (10%)</span></div>
+      <div class="krow"><span class="kk">Max force</span><span class="kval">500 kN</span></div>
+      <div class="krow"><span class="kk">Stroke</span><span class="kval">±0.5 m</span></div>
+      <div class="krow"><span class="kk">Current</span><span class="kval wn" id="r-act">284 kN</span></div>
+      <div class="krow"><span class="kk">Utilisation</span><span class="kval wn" id="r-util">56.8%</span></div>
+      <div class="krow"><span class="kk">Location</span><span class="kval">Roof F4</span></div>
+      <div class="krow"><span class="kk">Status</span><span class="kval ok bk">● Active</span></div>
+    </div>
+    <div class="card">
+      <div class="ct">Equation of motion</div>
+      <div class="eq-box" style="font-size:9px">
+        <b>[M]ẍ + [C]ẋ + [K]x = F(t) + u(t)</b><br><br>
+        M = 4,200 t<br>
+        K = 85 MN/m<br>
+        C = 2ζ√(KM)<br>
+        ζ = 3.82%<br><br>
+        <b>PID law:</b><br>
+        u = Kp·e + Ki·∫e + Kd·ė<br><br>
+        <b>Solver: Newmark-β</b><br>
+        β=0.25, γ=0.5, dt=0.005s
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Event log</div>
+      <div id="elog"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ── Clock ──────────────────────────────────────────────────────────────────
+setInterval(()=>document.getElementById('clk').textContent=new Date().toLocaleTimeString('en-GB'),1000);
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+function sw(btn,id){
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on'); document.getElementById('p-'+id).classList.add('on');
+}
+
+// ── PID + System state ────────────────────────────────────────────────────
+let Kp=180, Ki=22, Kd=95;
+let pidOn=true;
+let windSpeed=39, pgaG=0.18, exciteFreq=2.14;
+
+// MDOF 4-DOF building state [x1,x2,x3,x4, v1,v2,v3,v4]
+const NF=4;
+const M_floor=1050; // tonnes per floor
+const K_story=85000; // kN/m per storey (stiffness)
+const zeta=0.0382;
+const dt=0.005; // seconds
+
+// Assemble matrices (simplified shear building)
+function buildMatrices(){
+  // Mass: diagonal
+  const M=[M_floor,M_floor,M_floor,M_floor];
+  // Stiffness: tridiagonal
+  const K=[[2*K_story,-K_story,0,0],[-K_story,2*K_story,-K_story,0],[0,-K_story,2*K_story,-K_story],[0,0,-K_story,K_story]];
+  // Natural freq approx for damping
+  const omega1=2*Math.PI*2.14;
+  const alpha=2*zeta*omega1*0.3; const beta2=2*zeta/(omega1*3);
+  // Rayleigh damping C = alpha*M + beta*K
+  const C=M.map((m,i)=>alpha*m + beta2*K[i][i]);
+  return{M,K,C};
+}
+const {M,K,C}=buildMatrices();
+
+// State vectors
+let x=[0,0,0,0];    // displacements mm
+let v=[0,0,0,0];    // velocities mm/s
+let integral_err=0;
+let prev_err=0;
+let simTime=0;
+
+// History buffers (for plotting)
+const HLEN=600;
+let hist_t=new Array(HLEN).fill(0);
+let hist_xU=new Array(HLEN).fill(0);  // uncontrolled top floor
+let hist_xC=new Array(HLEN).fill(0);  // controlled top floor
+let hist_u=new Array(HLEN).fill(0);   // control force
+let hist_e=new Array(HLEN).fill(0);   // error
+let hist_Fp=new Array(HLEN).fill(0);  // P term
+let hist_Fi=new Array(HLEN).fill(0);  // I term
+let hist_Fd=new Array(HLEN).fill(0);  // D term
+
+// Uncontrolled parallel simulation
+let xU=[0,0,0,0], vU=[0,0,0,0];
+
+function excitationForce(t){
+  const windF=0.5*1.225*windSpeed*windSpeed*70*0.8/1000; // kN, simplified
+  const seismicF=pgaG*9.81*M_floor*4*0.25; // kN, simplified
+  const windComp=windF*(Math.sin(2*Math.PI*0.3*t)+0.3*Math.sin(2*Math.PI*1.1*t)+0.1*Math.random());
+  const seisComp=seismicF*(Math.sin(2*Math.PI*exciteFreq*t)*Math.exp(-0.05*Math.max(0,t-5)));
+  return windComp+seisComp;
+}
+
+function stepSystem(xArr,vArr,F_ext,F_ctrl,matrices){
+  const {M,K,C}=matrices;
+  // Simple SDOF equivalent for top floor (dominant mode)
+  // Full MDOF would need matrix solver; this gives realistic behaviour
+  const newX=[...xArr], newV=[...vArr];
+  for(let i=0;i<NF;i++){
+    const Fext_i = i===NF-1 ? F_ext/NF : F_ext/(NF*(i+1));
+    const Fctrl_i = i===NF-1 ? F_ctrl : 0;
+    const spring_i = -K[i][i]*0.001*xArr[i] + (i>0?K[i][i]*0.0005*xArr[i-1]:0);
+    const damp_i = -C[i]*0.001*vArr[i];
+    const a_i = (Fext_i + Fctrl_i + spring_i + damp_i)/(M[i]);
+    newV[i] = vArr[i] + a_i*dt*1000;
+    newX[i] = xArr[i] + newV[i]*dt;
+    // Numerical stability
+    newX[i]=Math.max(-150,Math.min(150,newX[i]));
+    newV[i]=Math.max(-500,Math.min(500,newV[i]));
+  }
+  return{newX,newV};
+}
+
+let stepCount=0;
+function simStep(){
+  simTime+=dt;
+  stepCount++;
+  const F_ext=excitationForce(simTime);
+
+  // Controlled system
+  const err=-x[NF-1]; // target = 0
+  integral_err+=err*dt;
+  integral_err=Math.max(-50,Math.min(50,integral_err)); // anti-windup
+  const derr=(err-prev_err)/dt;
+  prev_err=err;
+  const Fp=Kp*err*0.1;
+  const Fi=Ki*integral_err*0.1;
+  const Fd=Kd*derr*0.01;
+  const F_ctrl=pidOn?(Fp+Fi+Fd):0;
+  const F_ctrl_clamped=Math.max(-500,Math.min(500,F_ctrl));
+
+  const res=stepSystem(x,v,F_ext,F_ctrl_clamped,{M,K,C});
+  x=res.newX; v=res.newV;
+
+  // Uncontrolled (parallel)
+  const resU=stepSystem(xU,vU,F_ext,0,{M,K,C});
+  xU=resU.newX; vU=resU.newV;
+
+  // Store history
+  if(stepCount%3===0){
+    hist_t.push(simTime); hist_t.shift();
+    hist_xC.push(x[NF-1]); hist_xC.shift();
+    hist_xU.push(xU[NF-1]); hist_xU.shift();
+    hist_u.push(F_ctrl_clamped); hist_u.shift();
+    hist_e.push(err); hist_e.shift();
+    hist_Fp.push(Fp); hist_Fp.shift();
+    hist_Fi.push(Fi); hist_Fi.shift();
+    hist_Fd.push(Fd); hist_Fd.shift();
+  }
+
+  // Update metrics
+  if(stepCount%30===0){
+    const absC=Math.abs(x[NF-1]), absU=Math.abs(xU[NF-1]);
+    const red=absU>0.1?Math.max(0,(1-absC/absU)*100):95;
+    document.getElementById('m-unc').textContent=absU.toFixed(1)+' mm';
+    document.getElementById('m-ctrl').textContent=absC.toFixed(1)+' mm';
+    document.getElementById('m-red').textContent=red.toFixed(1)+'%';
+    document.getElementById('m-force').textContent=Math.abs(F_ctrl_clamped).toFixed(0)+' kN';
+    document.getElementById('r-act').textContent=Math.abs(F_ctrl_clamped).toFixed(0)+' kN';
+    document.getElementById('r-util').textContent=(Math.abs(F_ctrl_clamped)/5).toFixed(1)+'%';
+    const rmsC=Math.sqrt(hist_xC.reduce((a,v2)=>a+v2*v2,0)/HLEN);
+    const rmsU=Math.sqrt(hist_xU.reduce((a,v2)=>a+v2*v2,0)/HLEN);
+    document.getElementById('r-rms').textContent=rmsC.toFixed(1)+' mm';
+    document.getElementById('r-rmsu').textContent=rmsU.toFixed(1)+' mm';
+    // Stability indicator
+    const isStable=Math.abs(x[NF-1])<50;
+    document.getElementById('r-stab').textContent=isStable?'STABLE':'⚠ UNSTABLE';
+    document.getElementById('r-stab').className='kval '+(isStable?'ok':'er');
+  }
+}
+
+// Run simulation loop 20× per frame for realistic speeds
+setInterval(()=>{for(let i=0;i<12;i++)simStep();},16);
+
+// ── Drawing functions ─────────────────────────────────────────────────────
+
+// Colour helpers
+const COL_UNCTRL='#ef5350', COL_CTRL='#66bb6a', COL_FORCE='#4fc3f7', COL_ERR='#ffb74d';
+const COL_FP='#ef5350', COL_FI='#ffb74d', COL_FD='#66bb6a';
+
+function setupCanvas(id){
+  const c=document.getElementById(id);
+  const wrap=c.parentElement;
+  const W=wrap.clientWidth||480, H=wrap.clientHeight||240;
+  if(c.width!==W||c.height!==H){c.width=W;c.height=H;}
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#060d1a'; ctx.fillRect(0,0,W,H);
+  return{c,ctx,W,H};
+}
+
+function drawGrid(ctx,W,H,pad){
+  ctx.strokeStyle='rgba(26,40,80,0.5)'; ctx.lineWidth=0.4;
+  for(let x=pad;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+}
+
+function plotLine(ctx,data,W,H,mid,scale,col,lw=1.4){
+  ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=lw;
+  data.forEach((v,i)=>{
+    const px=i*(W/data.length);
+    const py=mid-v*scale;
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+}
+
+// ── DISPLACEMENT PLOT ─────────────────────────────────────────────────────
+function drawDisp(){
+  const{ctx,W,H}=setupCanvas('c-disp');
+  drawGrid(ctx,W,H,0);
+  const mid=H/2, scale=H*0.016;
+  // Limit lines
+  ctx.strokeStyle='rgba(255,183,77,0.35)';ctx.lineWidth=0.9;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(0,mid-20*scale);ctx.lineTo(W,mid-20*scale);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,mid+20*scale);ctx.lineTo(W,mid+20*scale);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,183,77,0.25)';ctx.font='9px monospace';ctx.textAlign='right';
+  ctx.fillText('Limit +20mm',W-4,mid-20*scale-3);
+  ctx.fillText('Limit −20mm',W-4,mid+20*scale+10);
+  // Zero line
+  ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=0.6;
+  ctx.beginPath();ctx.moveTo(0,mid);ctx.lineTo(W,mid);ctx.stroke();
+  // Data
+  plotLine(ctx,hist_xU,W,H,mid,scale,COL_UNCTRL,1.6);
+  plotLine(ctx,hist_xC,W,H,mid,scale,COL_CTRL,2.0);
+  // Actuator force (scaled)
+  plotLine(ctx,hist_u,W,H,mid,scale*0.035,COL_FORCE,1.1);
+  // Y labels
+  ctx.fillStyle='rgba(130,160,190,0.7)';ctx.font='9px monospace';ctx.textAlign='left';
+  [-30,-20,-10,0,10,20,30].forEach(mm=>{
+    ctx.fillText(mm+'mm',3,mid-mm*scale+3);
+  });
+  // Time labels
+  ctx.textAlign='center';
+  for(let i=0;i<=5;i++){
+    const tx=i*W/5;
+    const tt=(hist_t[Math.round(i*(HLEN-1)/5)]||0).toFixed(0);
+    ctx.fillText(tt+'s',tx,H-3);
+  }
+  requestAnimationFrame(drawDisp);
+}
+drawDisp();
+
+// ── ERROR PLOT ────────────────────────────────────────────────────────────
+function drawError(){
+  const{ctx,W,H}=setupCanvas('c-error');
+  drawGrid(ctx,W,H,0);
+  const mid=H/2,scale=H*0.014;
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(0,mid);ctx.lineTo(W,mid);ctx.stroke();
+  plotLine(ctx,hist_e,W,H,mid,scale,'rgba(255,183,77,0.8)',1.2);
+  ctx.fillStyle='rgba(130,160,190,0.6)';ctx.font='8px monospace';ctx.textAlign='left';
+  ctx.fillText('e(t) error',4,12);
+  requestAnimationFrame(drawError);
+}
+drawError();
+
+// ── PHASE PORTRAIT ────────────────────────────────────────────────────────
+let phaseHistC=[], phaseHistU=[];
+setInterval(()=>{
+  phaseHistC.push({x:x[NF-1],v:v[NF-1]});
+  phaseHistU.push({x:xU[NF-1],v:vU[NF-1]});
+  if(phaseHistC.length>800)phaseHistC.shift();
+  if(phaseHistU.length>800)phaseHistU.shift();
+},25);
+
+function drawPhase(){
+  const{ctx,W,H}=setupCanvas('c-phase');
+  drawGrid(ctx,W,H,0);
+  const cx=W/2,cy=H/2,sx=W*0.012,sy=H*0.004;
+  // Axes
+  ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=0.8;
+  ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  ctx.fillStyle='rgba(130,160,190,0.5)';ctx.font='9px monospace';
+  ctx.textAlign='center';ctx.fillText('displacement x(t)',cx,H-4);
+  ctx.save();ctx.translate(12,cy);ctx.rotate(-Math.PI/2);ctx.fillText('velocity ẋ(t)',0,0);ctx.restore();
+  // Plot uncontrolled
+  if(phaseHistU.length>2){
+    ctx.beginPath();ctx.strokeStyle='rgba(239,83,80,0.35)';ctx.lineWidth=0.9;
+    phaseHistU.forEach((p,i)=>{const px=cx+p.x*sx,py=cy-p.v*sy;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);});
+    ctx.stroke();
+  }
+  // Plot controlled
+  if(phaseHistC.length>2){
+    ctx.beginPath();ctx.strokeStyle='rgba(102,187,106,0.8)';ctx.lineWidth=1.4;
+    phaseHistC.forEach((p,i)=>{const px=cx+p.x*sx,py=cy-p.v*sy;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);});
+    ctx.stroke();
+    // Current point
+    const last=phaseHistC[phaseHistC.length-1];
+    ctx.beginPath();ctx.arc(cx+last.x*sx,cy-last.v*sy,5,0,Math.PI*2);
+    ctx.fillStyle='#66bb6a';ctx.fill();
+  }
+  ctx.fillStyle='rgba(130,160,190,0.5)';ctx.font='9px monospace';ctx.textAlign='left';
+  ctx.fillStyle='rgba(239,83,80,0.6)';ctx.fillText('── Uncontrolled',10,20);
+  ctx.fillStyle='rgba(102,187,106,0.9)';ctx.fillText('── Controlled (PID)',10,32);
+  requestAnimationFrame(drawPhase);
+}
+drawPhase();
+
+// ── BODE PLOT ─────────────────────────────────────────────────────────────
+function drawBode(){
+  const{ctx,W,H}=setupCanvas('c-bode');
+  drawGrid(ctx,W,H,0);
+  const topH=H*0.52, botH=H-topH;
+  const freqs=[], magU=[], magC=[], phaseU=[], phaseC=[];
+  const omega1=2*Math.PI*2.14;
+  const zeta1=0.0382;
+  const npts=180;
+  for(let i=0;i<npts;i++){
+    const f=0.05*Math.pow(100,i/npts);
+    freqs.push(f);
+    const w=2*Math.PI*f, r=w/omega1;
+    // Uncontrolled plant G(s)
+    const denom=Math.sqrt((1-r*r)**2+(2*zeta1*r)**2);
+    const magPlant=1/denom;
+    const phPlant=-Math.atan2(2*zeta1*r,1-r*r)*180/Math.PI;
+    // PID transfer function magnitude (simplified)
+    const s_jw_mag=Math.sqrt(Kp*Kp + (Ki/w - Kd*w)*(Ki/w - Kd*w));
+    const pidMag=s_jw_mag*0.001;
+    const pidPh=Math.atan2(Ki/w - Kd*w, Kp)*180/Math.PI;
+    magU.push(20*Math.log10(Math.max(1e-6,magPlant)));
+    magC.push(20*Math.log10(Math.max(1e-6,magPlant*pidMag)));
+    phaseU.push(phPlant);
+    phaseC.push(phPlant+pidPh);
+  }
+  // Magnitude plot (top)
+  const magMin=-50,magMax=30,magRange=magMax-magMin;
+  function magY(db){return topH*(1-(db-magMin)/magRange);}
+  ctx.strokeStyle='rgba(79,195,247,0.2)';ctx.lineWidth=0.4;
+  [magMin,-30,-20,-10,0,10,magMax].forEach(db=>{
+    const y=magY(db);if(y<0||y>topH)return;
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+    ctx.fillStyle='rgba(130,160,190,0.5)';ctx.font='8px monospace';ctx.textAlign='left';
+    ctx.fillText(db+'dB',2,y-2);
+  });
+  // 0dB line
+  ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=0.6;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(0,magY(0));ctx.lineTo(W,magY(0));ctx.stroke();
+  ctx.setLineDash([]);
+  // Freq axis (log)
+  function freqX(f){return W*Math.log10(f/0.05)/Math.log10(100/0.05);}
+  [0.1,0.5,1,2,3,5,10,20,50].forEach(f=>{
+    const fx=freqX(f);if(fx<0||fx>W)return;
+    ctx.strokeStyle='rgba(79,195,247,0.15)';ctx.lineWidth=0.4;
+    ctx.beginPath();ctx.moveTo(fx,0);ctx.lineTo(fx,H);ctx.stroke();
+    ctx.fillStyle='rgba(130,160,190,0.5)';ctx.font='8px monospace';ctx.textAlign='center';
+    ctx.fillText(f+'Hz',fx,topH-4);
+  });
+  // Natural freq line
+  const fnX=freqX(2.14);
+  ctx.strokeStyle='rgba(255,183,77,0.5)';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(fnX,0);ctx.lineTo(fnX,H);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,183,77,0.7)';ctx.font='8px monospace';ctx.textAlign='center';ctx.fillText('f₁=2.14Hz',fnX,12);
+  // Plot magnitude
+  ctx.beginPath();ctx.strokeStyle='rgba(239,83,80,0.7)';ctx.lineWidth=1.5;
+  magU.forEach((db,i)=>{const fx=freqX(freqs[i]),py=magY(db);i===0?ctx.moveTo(fx,py):ctx.lineTo(fx,py);});ctx.stroke();
+  ctx.beginPath();ctx.strokeStyle='rgba(102,187,106,0.9)';ctx.lineWidth=1.8;
+  magC.forEach((db,i)=>{const fx=freqX(freqs[i]),py=Math.max(0,Math.min(topH,magY(db)));i===0?ctx.moveTo(fx,py):ctx.lineTo(fx,py);});ctx.stroke();
+  // Phase plot (bottom)
+  ctx.fillStyle='rgba(26,40,80,0.8)';ctx.fillRect(0,topH,W,botH);
+  const phRange=360;
+  function phY(ph){return topH+botH*(1-(ph+180)/phRange);}
+  [-180,-90,0,90,180].forEach(ph=>{
+    const py=phY(ph);
+    ctx.strokeStyle='rgba(79,195,247,0.15)';ctx.lineWidth=0.4;
+    ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();
+    ctx.fillStyle='rgba(130,160,190,0.5)';ctx.font='8px monospace';ctx.textAlign='left';
+    ctx.fillText(ph+'°',2,py-2);
+  });
+  ctx.beginPath();ctx.strokeStyle='rgba(239,83,80,0.6)';ctx.lineWidth=1.4;
+  phaseU.forEach((ph,i)=>{const fx=freqX(freqs[i]);i===0?ctx.moveTo(fx,phY(ph)):ctx.lineTo(fx,phY(ph));});ctx.stroke();
+  ctx.beginPath();ctx.strokeStyle='rgba(102,187,106,0.8)';ctx.lineWidth=1.6;
+  phaseC.forEach((ph,i)=>{const fx=freqX(freqs[i]);i===0?ctx.moveTo(fx,phY(ph)):ctx.lineTo(fx,phY(ph));});ctx.stroke();
+  // Labels
+  ctx.fillStyle='rgba(130,160,190,0.7)';ctx.font='9px monospace';ctx.textAlign='left';
+  ctx.fillStyle='rgba(239,83,80,0.8)';ctx.fillText('── Uncontrolled (plant)',8,topH-22);
+  ctx.fillStyle='rgba(102,187,106,0.9)';ctx.fillText('── Closed-loop (PID+plant)',8,topH-10);
+  ctx.fillStyle='rgba(130,160,190,0.6)';ctx.fillText('Magnitude (dB)',8,20);ctx.fillText('Phase (deg)',8,topH+14);
+  requestAnimationFrame(drawBode);
+}
+drawBode();
+
+// ── BUILDING DIAGRAM ──────────────────────────────────────────────────────
+function drawBuilding(){
+  const{ctx,W,H}=setupCanvas('c-bldg');
+  drawGrid(ctx,W,H,0);
+  const nf=4,fw=80,fh=80,ox=W/2-fw/2,gy=H-60;
+  // Ground
+  ctx.fillStyle='rgba(26,48,80,0.8)';ctx.fillRect(0,gy+10,W,H-gy-10);
+  ctx.strokeStyle='rgba(79,195,247,0.4)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(0,gy+10);ctx.lineTo(W,gy+10);ctx.stroke();
+  // Floors with displacement
+  for(let f=0;f<nf;f++){
+    const disp=(x[f]||0)*0.8; // scale mm to pixels
+    const fy=gy-f*(fh+8);
+    const fx2=ox+disp;
+    // Column left
+    ctx.strokeStyle=f===nf-1?'rgba(239,83,80,0.9)':'rgba(79,195,247,0.5)';
+    ctx.lineWidth=f===nf-1?3:2;
+    if(f===0){ctx.beginPath();ctx.moveTo(ox+8,gy+10);ctx.lineTo(fx2+8,fy);ctx.stroke();}
+    else{const prevDisp=(x[f-1]||0)*0.8,prevFy=gy-(f-1)*(fh+8);ctx.beginPath();ctx.moveTo(ox+8+prevDisp,prevFy);ctx.lineTo(fx2+8,fy);ctx.stroke();}
+    // Column right
+    if(f===0){ctx.beginPath();ctx.moveTo(ox+fw-8,gy+10);ctx.lineTo(fx2+fw-8,fy);ctx.stroke();}
+    else{const prevDisp=(x[f-1]||0)*0.8,prevFy=gy-(f-1)*(fh+8);ctx.beginPath();ctx.moveTo(ox+fw-8+prevDisp,prevFy);ctx.lineTo(fx2+fw-8,fy);ctx.stroke();}
+    // Floor slab
+    const slabCol=f===nf-1?'rgba(239,83,80,0.7)':`rgba(${30+f*25},${60+f*20},${100+f*15},0.85)`;
+    ctx.fillStyle=slabCol;ctx.fillRect(fx2,fy-8,fw,8);
+    ctx.strokeStyle='rgba(79,195,247,0.55)';ctx.lineWidth=1;ctx.strokeRect(fx2,fy-8,fw,8);
+    // Floor label
+    ctx.fillStyle='rgba(130,160,190,0.7)';ctx.font='9px monospace';ctx.textAlign='right';
+    ctx.fillText('F'+(f+1)+' '+((x[f]||0)).toFixed(1)+'mm',ox-10,fy-2);
+    // Sensor dot
+    const sc=Math.abs(x[f]||0)>15?'#ef5350':Math.abs(x[f]||0)>8?'#ffb74d':'#66bb6a';
+    ctx.beginPath();ctx.arc(fx2+fw+8,fy-4,5,0,Math.PI*2);ctx.fillStyle=sc;ctx.fill();
+  }
+  // AMD actuator on roof
+  const roofF=nf-1, roofDisp=(x[roofF]||0)*0.8;
+  const roofY=gy-roofF*(fh+8);
+  const amdX=ox+fw/2+roofDisp;
+  // AMD mass
+  ctx.fillStyle='rgba(156,39,176,0.8)';ctx.fillRect(amdX-20,roofY-50,40,22);
+  ctx.strokeStyle='rgba(171,71,188,0.9)';ctx.lineWidth=1.5;ctx.strokeRect(amdX-20,roofY-50,40,22);
+  ctx.fillStyle='rgba(220,180,255,0.9)';ctx.font='8px monospace';ctx.textAlign='center';ctx.fillText('AMD',amdX,roofY-35);
+  // AMD spring
+  ctx.strokeStyle='rgba(171,71,188,0.6)';ctx.lineWidth=1;
+  for(let si=0;si<6;si++){
+    const sy1=roofY-28+si*4.5,sy2=roofY-28+(si+1)*4.5;
+    const sx=(si%2===0)?amdX-8:amdX+8;
+    ctx.beginPath();ctx.moveTo(amdX,sy1);ctx.lineTo(sx,sy2);ctx.stroke();
+  }
+  ctx.beginPath();ctx.moveTo(amdX,roofY-55);ctx.lineTo(amdX,roofY-50);ctx.stroke();
+  // Force arrow
+  const fu=(hist_u[hist_u.length-1]||0);
+  if(Math.abs(fu)>5){
+    const arrLen=Math.min(60,Math.abs(fu)*0.1)*Math.sign(fu);
+    ctx.strokeStyle='rgba(79,195,247,0.85)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(amdX,roofY-20);ctx.lineTo(amdX+arrLen,roofY-20);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(amdX+arrLen,roofY-20);ctx.lineTo(amdX+arrLen-(arrLen>0?8:-8),roofY-25);ctx.lineTo(amdX+arrLen-(arrLen>0?8:-8),roofY-15);ctx.closePath();ctx.fillStyle='rgba(79,195,247,0.85)';ctx.fill();
+    ctx.fillStyle='rgba(79,195,247,0.8)';ctx.font='8px monospace';ctx.textAlign=fu>0?'left':'right';ctx.fillText(Math.abs(fu).toFixed(0)+'kN',amdX+arrLen+(fu>0?4:-4),roofY-22);
+  }
+  // Legend
+  ctx.fillStyle='rgba(239,83,80,0.8)';ctx.font='9px monospace';ctx.textAlign='left';ctx.fillText('■ Critical floor',W-130,20);
+  ctx.fillStyle='rgba(156,39,176,0.8)';ctx.fillText('■ AMD actuator',W-130,33);
+  ctx.fillStyle='rgba(79,195,247,0.7)';ctx.fillText('→ Control force',W-130,46);
+  requestAnimationFrame(drawBuilding);
+}
+drawBuilding();
+
+// ── FORCE COMPONENTS ─────────────────────────────────────────────────────
+function drawForce(){
+  const{ctx,W,H}=setupCanvas('c-force');
+  drawGrid(ctx,W,H,0);
+  const mid=H/2,scale=H*0.006;
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(0,mid);ctx.lineTo(W,mid);ctx.stroke();
+  plotLine(ctx,hist_Fp,W,H,mid,scale,COL_FP,1.5);
+  plotLine(ctx,hist_Fi,W,H,mid,scale,COL_FI,1.3);
+  plotLine(ctx,hist_Fd,W,H,mid,scale,COL_FD,1.3);
+  plotLine(ctx,hist_u, W,H,mid,scale*0.8,'rgba(255,255,255,0.5)',1.8);
+  ctx.fillStyle=COL_FP;ctx.font='9px monospace';ctx.textAlign='left';ctx.fillText('Kp·e (Proportional)',8,16);
+  ctx.fillStyle=COL_FI;ctx.fillText('Ki·∫e (Integral)',8,28);
+  ctx.fillStyle=COL_FD;ctx.fillText('Kd·ė (Derivative)',8,40);
+  ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fillText('Total u(t)',8,52);
+  requestAnimationFrame(drawForce);
+}
+drawForce();
+
+// ── Controls ──────────────────────────────────────────────────────────────
+function updatePID(){
+  Kp=parseInt(document.getElementById('sl-kp').value);
+  Ki=parseInt(document.getElementById('sl-ki').value);
+  Kd=parseInt(document.getElementById('sl-kd').value);
+  document.getElementById('v-kp').textContent=Kp;
+  document.getElementById('v-ki').textContent=Ki;
+  document.getElementById('v-kd').textContent=Kd;
+  updateBodeLabels();
+  addLog('PID gains updated: Kp='+Kp+' Ki='+Ki+' Kd='+Kd);
+}
+function updateExcite(){
+  windSpeed=parseInt(document.getElementById('sl-wind').value);
+  pgaG=parseInt(document.getElementById('sl-pga').value)/100;
+  exciteFreq=parseInt(document.getElementById('sl-freq').value)/100;
+  document.getElementById('v-wind').textContent=windSpeed;
+  document.getElementById('v-pga').textContent=pgaG.toFixed(2)+'g';
+  document.getElementById('v-freq').textContent=exciteFreq.toFixed(2);
+}
+function setPreset(type){
+  const presets={
+    wind:{wind:39,pga:5,freq:30,kp:180,ki:22,kd:95},
+    seismic:{wind:10,pga:40,freq:214,kp:220,ki:18,kd:120},
+    resonance:{wind:25,pga:18,freq:214,kp:260,ki:25,kd:140},
+    combined:{wind:39,pga:28,freq:180,kp:240,ki:20,kd:130},
+  };
+  const p=presets[type];
+  document.getElementById('sl-wind').value=p.wind;
+  document.getElementById('sl-pga').value=p.pga;
+  document.getElementById('sl-freq').value=p.freq*100;
+  document.getElementById('sl-kp').value=p.kp;
+  document.getElementById('sl-ki').value=p.ki;
+  document.getElementById('sl-kd').value=p.kd;
+  updateExcite(); updatePID();
+  addLog('Preset loaded: '+type.toUpperCase());
+}
+function setPID(on){
+  pidOn=on;
+  document.getElementById('pid-badge').className='pid-status '+(on?'pid-on':'pid-off');
+  document.getElementById('pid-badge').textContent=(on?'● PID ACTIVE — AMD running':'■ PID DISABLED — passive only');
+  document.getElementById('pid-status-top').textContent='PID: '+(on?'ACTIVE':'DISABLED');
+  integral_err=0; prev_err=0;
+  addLog('PID controller '+(on?'ENABLED':'DISABLED'));
+}
+function autoTune(){
+  // Ziegler-Nichols ultimate gain method approximation
+  const Ku=320, Tu=1/2.14;
+  const kp_zn=0.6*Ku, ki_zn=1.2*Ku/Tu, kd_zn=0.075*Ku*Tu;
+  Kp=Math.round(kp_zn); Ki=Math.round(Math.min(99,ki_zn*0.05)); Kd=Math.round(Math.min(199,kd_zn*5));
+  document.getElementById('sl-kp').value=Kp;
+  document.getElementById('sl-ki').value=Ki;
+  document.getElementById('sl-kd').value=Kd;
+  updatePID();
+  addLog('Auto-tune complete: Kp='+Kp+' Ki='+Ki+' Kd='+Kd+' (Ziegler-Nichols)');
+}
+function resetSim(){
+  x=[0,0,0,0]; v=[0,0,0,0]; xU=[0,0,0,0]; vU=[0,0,0,0];
+  integral_err=0; prev_err=0; simTime=0; stepCount=0;
+  hist_xC.fill(0); hist_xU.fill(0); hist_u.fill(0); hist_e.fill(0);
+  hist_Fp.fill(0); hist_Fi.fill(0); hist_Fd.fill(0);
+  phaseHistC=[]; phaseHistU=[];
+  addLog('Simulation reset');
+}
+function updateBodeLabels(){
+  const pm=Math.max(5,45-Kp*0.02-Ki*0.1).toFixed(0);
+  const gm=Math.max(2,12-Kp*0.01).toFixed(1);
+  document.getElementById('h-pm').textContent=pm+'°';
+  document.getElementById('h-gm').textContent=gm+' dB';
+  document.getElementById('r-pm').textContent=pm+'°';
+  document.getElementById('r-gm').textContent=gm+' dB';
+  const stable=parseInt(pm)>10&&parseFloat(gm)>3;
+  document.getElementById('r-stab').textContent=stable?'STABLE':'⚠ UNSTABLE';
+  document.getElementById('r-stab').className='kval '+(stable?'ok':'er');
+}
+updateBodeLabels();
+
+// ── Event log ─────────────────────────────────────────────────────────────
+const logs=[];
+function addLog(msg){
+  logs.unshift({t:new Date().toLocaleTimeString('en-GB'),msg});
+  if(logs.length>6)logs.pop();
+  const el=document.getElementById('elog');
+  if(el)el.innerHTML=logs.map(l=>`<div class="al-i"><div class="adot" style="background:var(--color-background-info)"></div><div><div style="font-size:10px;color:var(--color-text-primary)">${l.msg}</div><div style="font-size:9px;color:var(--color-text-secondary)">${l.t}</div></div></div>`).join('');
+}
+addLog('PID controller initialised');
+addLog('MDOF Newmark-β solver running');
+addLog('AMD actuator online — roof F4');
+addLog('Excitation: wind 39m/s + seismic 0.18g');
+</script>
