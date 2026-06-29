@@ -19,11 +19,11 @@ Autodesk Revit, ANSYS, Microsoft Azure IoT, and Unity 6.
 
 | BIMobject Digital Twin Dashboard | PID Active Control Dashboard |
 |---|---|
-| ![Dashboard](images/shm_building_model.png) | ![PID](images/shm_cfd_simulation.png) |
+| Dashboard<img width="1424" height="807" alt="image" src="https://github.com/user-attachments/assets/48ca39b2-962d-4122-acdf-f132b298a260" />)| PID<img width="1423" height="728" alt="image" src="https://github.com/user-attachments/assets/6e9d0be1-8fb9-42a1-bf96-1a125b08b613" />
+) |
 
-| CFD Wind Simulation | Hardware System |
-|---|---|
-| ![CFD](images/shm_cfd_detailed.png) | ![Hardware](images/shm_hardware_system.png) |
+CFD Wind Simulation  
+<img width="1422" height="810" alt="image" src="https://github.com/user-attachments/assets/86a0c47a-b627-4068-ac16-cbcc0d0df082" />
 
 ---
 
@@ -202,4 +202,4 @@ python simulation/shm_building_model.py
 
 ---
 
-## 🧠 AI Architecture
+
