@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BIMobject Digital Twin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#04080f;font-family:'Segoe UI',monospace;color:#c8d8e8;overflow:hidden;height:100vh;}
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#080e1a;border-bottom:1px solid #1a2840;position:fixed;top:0;width:100%;z-index:100;}
+.logo{font-size:14px;font-weight:700;color:#4fc3f7;letter-spacing:1px;}
+.badges{display:flex;gap:6px;}
+.badge{font-size:9px;padding:2px 8px;border-radius:20px;border:1px solid;}
+.br{border-color:#e65100;color:#e65100;}
+.ba{border-color:#c62828;color:#c62828;}
+.baz{border-color:#4fc3f7;color:#4fc3f7;}
+.bu{border-color:#9c27b0;color:#9c27b0;}
+.live{display:flex;align-items:center;gap:6px;font-size:10px;color:#66bb6a;}
+.ldot{width:7px;height:7px;border-radius:50%;background:#66bb6a;animation:lp 1.4s ease-in-out infinite;}
+@keyframes lp{0%,100%{opacity:1}50%{opacity:.2}}
+#kpi{display:flex;gap:8px;padding:8px;background:#070d1a;border-bottom:1px solid #1a2840;position:fixed;top:44px;width:100%;z-index:99;}
+.kcard{background:#0a1220;border:1px solid #1a2840;border-radius:6px;padding:8px 14px;flex:1;}
+.kl{font-size:9px;color:#4a6080;margin-bottom:3px;}
+.kv{font-size:20px;font-weight:700;}
+.kd{font-size:9px;color:#4a6080;margin-top:2px;}
+#main{display:grid;grid-template-columns:200px 1fr 185px;position:fixed;top:122px;bottom:36px;width:100%;overflow:hidden;}
+.panel{background:#08101e;border-right:1px solid #1a2840;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}
+.panel.right{border-right:none;border-left:1px solid #1a2840;}
+.pcard{background:#0a1220;border:1px solid #1a2840;border-radius:6px;padding:10px;}
+.ptitle{font-size:9px;color:#4a6080;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;font-weight:600;}
+.krow{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #0e1828;font-size:10px;}
+.krow:last-child{border-bottom:none;}
+.kk{color:#4a6080;}
+.kval{color:#c8d8e8;font-weight:500;}
+.ok{color:#66bb6a!important;}
+.wn{color:#ffb74d!important;}
+.er{color:#ef5350!important;}
+.sr{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid #0e1828;font-size:10px;}
+.sr:last-child{border-bottom:none;}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sn{flex:1;}
+.sv{color:#4a6080;font-size:9px;}
+/* CENTRE */
+#centre{display:flex;flex-direction:column;background:#04080f;overflow:hidden;}
+#tabbar{display:flex;gap:3px;padding:8px 10px 0;background:#080e1a;border-bottom:1px solid #1a2840;flex-shrink:0;}
+.tab{font-size:10px;padding:5px 14px;border-radius:5px 5px 0 0;border:1px solid transparent;background:transparent;color:#4a6080;cursor:pointer;border-bottom:none;position:relative;bottom:-1px;font-family:monospace;}
+.tab.on{background:#04080f;border-color:#1a2840;border-bottom-color:#04080f;color:#4fc3f7;}
+.pane{display:none;flex:1;flex-direction:column;position:relative;overflow:hidden;}
+.pane.on{display:flex;}
+#twin-container{flex:1;position:relative;overflow:hidden;background:#02060f;}
+#c3d{display:block;}
+.hud{position:absolute;font-size:9px;font-family:monospace;pointer-events:none;line-height:1.8;text-shadow:0 0 6px rgba(0,0,0,.8);}
+.htl{top:10px;left:12px;color:#4fc3f7;}
+.htr{top:10px;right:12px;text-align:right;}
+.hbl{bottom:10px;left:12px;color:#4a6080;}
+.hbr{bottom:10px;right:12px;text-align:right;color:#4a6080;}
+#ov-bar{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:20;}
+.ob{font-size:9px;padding:4px 10px;border-radius:20px;border:1px solid #1a3050;background:rgba(4,8,15,.8);color:#4a6080;cursor:pointer;font-family:monospace;transition:all .15s;}
+.ob.on{background:rgba(79,195,247,.15);color:#4fc3f7;border-color:#4fc3f7;}
+#wavebar{height:80px;background:#060d1a;border-top:1px solid #1a2840;flex-shrink:0;position:relative;padding:4px 10px 0;}
+#wlabel{font-size:9px;color:#4a6080;margin-bottom:2px;}
+#cwave{display:block;width:100%;height:62px;}
+/* ANSYS */
+#cansys{display:block;width:100%;flex:1;}
+/* CFD */
+#ccfd{display:block;width:100%;flex:1;}
+/* AZURE */
+#paz{background:#060d1a;overflow-y:auto;flex:1;padding:10px;display:flex;flex-direction:column;gap:8px;}
+.az2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.azcard{background:#0a1220;border:1px solid #1a2840;border-radius:6px;padding:10px;}
+.azv{font-size:24px;font-weight:700;line-height:1;margin-bottom:3px;}
+.azs{font-size:9px;color:#4a6080;}
+.pb{height:4px;background:#0e1828;border-radius:2px;margin-top:6px;overflow:hidden;}
+.pf{height:100%;border-radius:2px;transition:width .5s;}
+#caz{display:block;width:100%;}
+/* AI */
+#pai{background:#060d1a;overflow-y:auto;flex:1;padding:10px;display:flex;flex-direction:column;gap:8px;}
+.ai3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.rbar{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.rl{font-size:10px;color:#4a6080;width:90px;flex-shrink:0;}
+.rt{flex:1;height:6px;background:#0e1828;border-radius:3px;overflow:hidden;}
+.rf{height:100%;border-radius:3px;}
+.rn{font-size:10px;width:32px;text-align:right;font-weight:600;}
+#canom{display:block;width:100%;}
+.logrow{display:flex;gap:6px;padding:4px 0;border-bottom:1px solid #0e1828;font-size:10px;}
+.logrow:last-child{border-bottom:none;}
+.logt{color:#2a3a50;width:34px;flex-shrink:0;}
+/* CONTROLS */
+.ctrl{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.cl{font-size:10px;color:#4a6080;width:90px;flex-shrink:0;}
+.cv{font-size:10px;font-weight:600;width:32px;text-align:right;}
+input[type=range]{flex:1;-webkit-appearance:none;height:4px;background:#1a2840;border-radius:2px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#4fc3f7;cursor:pointer;}
+.tgrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.tgl{width:28px;height:14px;background:#1a2840;border-radius:7px;position:relative;cursor:pointer;transition:background .2s;}
+.tgl.on{background:#1b5e20;}
+.tgl::after{content:'';position:absolute;width:10px;height:10px;background:white;border-radius:50%;top:2px;left:2px;transition:left .2s;}
+.tgl.on::after{left:16px;}
+.abtn{width:100%;padding:6px;border-radius:5px;border:1px solid;font-size:10px;cursor:pointer;font-family:monospace;margin-bottom:4px;font-weight:600;}
+.abg{border-color:#1b5e20;color:#66bb6a;background:#0a1a0a;}
+.abw{border-color:#7a4a00;color:#ffb74d;background:#120e00;}
+.abr{border-color:#7a0000;color:#ef5350;background:#120000;}
+/* ALERT */
+.ali{display:flex;gap:6px;padding:5px 0;border-bottom:1px solid #0e1828;align-items:flex-start;}
+.ali:last-child{border-bottom:none;}
+.adot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.atxt{font-size:10px;flex:1;line-height:1.4;}
+.atm{font-size:9px;color:#4a6080;margin-top:1px;}
+#statusbar{position:fixed;bottom:0;width:100%;display:flex;gap:12px;align-items:center;padding:5px 14px;background:#060c18;border-top:1px solid #1a2840;z-index:100;}
+.si{display:flex;align-items:center;gap:5px;font-size:9px;color:#4a6080;}
+.sd{width:6px;height:6px;border-radius:50%;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.pl{animation:pulse 2s ease-in-out infinite;}
+.bk{animation:blink .9s step-end infinite;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="logo">BIMobject Digital Twin</span>
+    <div class="badges">
+      <span class="badge br">Revit 2014</span>
+      <span class="badge ba">ANSYS 2024</span>
+      <span class="badge baz">Azure IoT Hub</span>
+      <span class="badge bu">Unity 6</span>
+    </div>
+    <span style="font-size:10px;color:#4a6080;">BIMobject_Demo_Model.rvt &middot; Showroom &middot; Sweden &middot; 76.6 MB</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="live"><span class="ldot"></span>Live Simulation</div>
+    <span style="font-size:10px;color:#66bb6a;">&#9646; System Nominal</span>
+    <span style="font-size:10px;color:#4a6080;" id="clk">--:--:--</span>
+  </div>
+</div>
+
+<!-- KPIs -->
+<div id="kpi">
+  <div class="kcard"><div class="kl">Structural Health Index</div><div class="kv ok">96.4<span style="font-size:11px;color:#4a6080;">/100</span></div><div class="kd" style="color:#66bb6a;">&#9650; Nominal</div></div>
+  <div class="kcard"><div class="kl">Max Displacement (ANSYS)</div><div class="kv wn" id="k1">14.2 <span style="font-size:11px;">mm</span></div><div class="kd">FEA live</div></div>
+  <div class="kcard"><div class="kl">Wind Pressure (CFD)</div><div class="kv" style="color:#4fc3f7;" id="k2">0.76 <span style="font-size:11px;">kPa</span></div><div class="kd">RANS 39 m/s</div></div>
+  <div class="kcard"><div class="kl">AI Failure Risk (30d)</div><div class="kv wn" id="k3">18<span style="font-size:11px;">%</span></div><div class="kd">LSTM + RF model</div></div>
+  <div class="kcard"><div class="kl">Azure IoT Nodes</div><div class="kv" style="color:#4fc3f7;">247</div><div class="kd">Online &middot; MQTT</div></div>
+  <div class="kcard"><div class="kl">Fatigue Damage D</div><div class="kv wn">0.79</div><div class="kd">Miner&#39;s rule</div></div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="pcard">
+      <div class="ptitle">Revit Model Info</div>
+      <div class="krow"><span class="kk">Version</span><span class="kval">Revit 2014</span></div>
+      <div class="krow"><span class="kk">Build</span><span class="kval" style="font-size:9px;">20131024_x64</span></div>
+      <div class="krow"><span class="kk">Type</span><span class="kval">Showroom</span></div>
+      <div class="krow"><span class="kk">Location</span><span class="kval">Sweden</span></div>
+      <div class="krow"><span class="kk">Elements</span><span class="kval">~4,200</span></div>
+      <div class="krow"><span class="kk">DOF</span><span class="kval">48,216</span></div>
+      <div class="krow"><span class="kk">Size</span><span class="kval">76.6 MB</span></div>
+      <div class="krow"><span class="kk">Keynote</span><span class="kval ok">Loaded</span></div>
+      <div class="krow"><span class="kk">CAD Link</span><span class="kval wn">Not found</span></div>
+    </div>
+    <div class="pcard">
+      <div class="ptitle">IoT Sensor Network</div>
+      <div id="slist"></div>
+    </div>
+    <div class="pcard">
+      <div class="ptitle">ANSYS Solver</div>
+      <div class="krow"><span class="kk">Status</span><span class="kval ok">Running</span></div>
+      <div class="krow"><span class="kk">Module</span><span class="kval">Mechanical</span></div>
+      <div class="krow"><span class="kk">Substeps</span><span class="kval" id="asstep">87/100</span></div>
+      <div class="krow"><span class="kk">Convergence</span><span class="kval ok" id="asconv">0.0012</span></div>
+      <div class="krow"><span class="kk">Load Case</span><span class="kval" id="aslc">DL+LL+WL</span></div>
+      <div class="krow"><span class="kk">Material</span><span class="kval">M30 / Fe500</span></div>
+    </div>
+    <div class="pcard">
+      <div class="ptitle">LiDAR Topology</div>
+      <div class="krow"><span class="kk">Points</span><span class="kval">4.2M</span></div>
+      <div class="krow"><span class="kk">RMSE</span><span class="kval ok">0.28 mm</span></div>
+      <div class="krow"><span class="kk">Max Drift</span><span class="kval wn">3.9 mm</span></div>
+      <div class="krow"><span class="kk">Scans</span><span class="kval">47 complete</span></div>
+      <div class="krow"><span class="kk">Status</span><span class="kval bk" style="color:#4fc3f7;">&#9679; Scanning</span></div>
+    </div>
+  </div>
+
+  <!-- CENTRE -->
+  <div id="centre">
+    <div id="tabbar">
+      <button class="tab on" onclick="sw(this,'twin')">&#127970; 3D Digital Twin</button>
+      <button class="tab" onclick="sw(this,'ansys')">&#9889; ANSYS FEA</button>
+      <button class="tab" onclick="sw(this,'cfd')">&#127788;&#65039; CFD Wind</button>
+      <button class="tab" onclick="sw(this,'azure')">&#9729;&#65039; Azure IoT</button>
+      <button class="tab" onclick="sw(this,'ai')">&#129302; AI Predict</button>
+    </div>
+
+    <!-- 3D TWIN -->
+    <div class="pane on" id="p-twin">
+      <div id="twin-container">
+        <canvas id="c3d"></canvas>
+        <div id="ov-bar">
+          <button class="ob on" onclick="setOv(this,'stress')">Stress</button>
+          <button class="ob" onclick="setOv(this,'modal')">Modal</button>
+          <button class="ob" onclick="setOv(this,'sensor')">Sensors</button>
+          <button class="ob" onclick="setOv(this,'xray')">X-Ray</button>
+          <button class="ob" onclick="setOv(this,'wire')">Wireframe</button>
+        </div>
+        <div class="hud htl">
+          <div>BIMobject Showroom &middot; Revit 2014 &#8594; Unity 6</div>
+          <div>Elements: 4,200 &middot; Nodes: 1,204 &middot; DOF: 48,216</div>
+          <div id="hovtxt">Overlay: STRESS (Von Mises)</div>
+          <div id="hfps" style="margin-top:3px;color:#4a6080;">FPS: --</div>
+        </div>
+        <div class="hud htr">
+          <div class="er bk">&#9679; ALERT: Col-NE RF 2.9&times; limit</div>
+          <div class="wn">&#9650; WARN: Roof drift 3.9 mm</div>
+          <div class="ok">&#10003; Foundation: nominal</div>
+          <div style="color:#4a6080;margin-top:3px;">Unity 6 &middot; WebGL renderer</div>
+        </div>
+        <div class="hud hbl">
+          <div id="hrot">Drag = Rotate &nbsp;|&nbsp; Scroll = Zoom &nbsp;|&nbsp; Auto-orbiting</div>
+          <div style="color:#26c6da;animation:blink .9s step-end infinite;">&#9679; LiDAR scanning...</div>
+        </div>
+        <div class="hud hbr">
+          <div>Scale 1:50 &middot; IS 456:2000 &middot; IS 1893:2016</div>
+          <div id="htime">Sim: 00:00:00</div>
+        </div>
+      </div>
+      <div id="wavebar">
+        <div id="wlabel">Live vibration signal &mdash; S-A03 F2 NE (real-time synthetic)</div>
+        <canvas id="cwave"></canvas>
+      </div>
+    </div>
+
+    <!-- ANSYS -->
+    <div class="pane" id="p-ansys" style="background:#02060f;">
+      <canvas id="cansys"></canvas>
+      <div class="hud htl" style="color:#4fc3f7;">
+        <div>ANSYS Mechanical 2024 R2 &middot; Static Structural</div>
+        <div>Non-linear FEA &middot; M30 concrete / Fe500 steel</div>
+        <div id="ahlc">Load case: DL+LL+WL</div>
+      </div>
+      <div class="hud htr">
+        <div>Max stress: <span class="er" id="ahs">187 MPa</span></div>
+        <div>Max disp: <span class="wn" id="ahd">14.2 mm</span></div>
+        <div>Safety factor: <span class="wn" id="ahf">1.20&times;</span></div>
+        <div>DOF: <span style="color:#c8d8e8;">48,216</span></div>
+      </div>
+    </div>
+
+    <!-- CFD -->
+    <div class="pane" id="p-cfd" style="background:#02060f;">
+      <canvas id="ccfd"></canvas>
+      <div class="hud htl" style="color:#4fc3f7;">
+        <div>ANSYS Fluent &middot; RANS k-&epsilon; model</div>
+        <div>Grid: 480&times;320 &middot; Re &asymp; 2.6&times;10&sup7;</div>
+        <div>V&#7523;&#7531;&#7530; = 39 m/s &middot; IS 875:2015 Part 3</div>
+      </div>
+      <div class="hud htr">
+        <div>Cp&#8346;&#8347;&#8345;: <span class="er">+1.04</span></div>
+        <div>Cp&#8346;&#7522;&#8345;: <span style="color:#4fc3f7;">&#8722;1.38</span></div>
+        <div>TI (wake): <span class="wn">28%</span></div>
+      </div>
+    </div>
+
+    <!-- AZURE -->
+    <div class="pane" id="p-azure">
+      <div id="paz">
+        <div class="az2">
+          <div class="azcard">
+            <div class="ptitle">IoT Hub Throughput</div>
+            <div class="azv" style="color:#4fc3f7;" id="azm">284</div>
+            <div class="azs">messages / sec &middot; 247 nodes &middot; MQTT</div>
+            <div class="pb"><div class="pf" id="azmb" style="background:#0288d1;width:72%;"></div></div>
+          </div>
+          <div class="azcard">
+            <div class="ptitle">Azure ML Predictions</div>
+            <div class="azv" style="color:#9c27b0;" id="azp">738</div>
+            <div class="azs">predictions / hr &middot; AKS endpoint</div>
+            <div class="pb"><div class="pf" style="background:#9c27b0;width:83%;"></div></div>
+          </div>
+          <div class="azcard">
+            <div class="ptitle">Stream Analytics</div>
+            <div class="azv" style="color:#26c6da;" id="azsa">1,420</div>
+            <div class="azs">events / min &middot; anomaly detection</div>
+            <div class="pb"><div class="pf" id="azsab" style="background:#00838f;width:61%;"></div></div>
+          </div>
+          <div class="azcard">
+            <div class="ptitle">Digital Twins Sync</div>
+            <div class="azv" style="color:#66bb6a;" id="azdt">52</div>
+            <div class="azs">model updates / min &middot; BIM sync</div>
+            <div class="pb"><div class="pf" id="azdtb" style="background:#2e7d32;width:68%;"></div></div>
+          </div>
+        </div>
+        <div class="azcard">
+          <div class="ptitle">Azure Digital Twins &mdash; Data Flow Graph (live)</div>
+          <canvas id="caz" height="140"></canvas>
+        </div>
+        <div class="azcard">
+          <div class="ptitle">Azure Services Health</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;" id="azsvc"></div>
+        </div>
+        <div class="azcard">
+          <div class="ptitle">Event Log &mdash; Azure Monitor</div>
+          <div id="azlog"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI -->
+    <div class="pane" id="p-ai">
+      <div id="pai">
+        <div class="ai3">
+          <div class="pcard">
+            <div class="ptitle">LSTM Temporal Model</div>
+            <div class="krow"><span class="kk">Architecture</span><span class="kval">3-layer LSTM</span></div>
+            <div class="krow"><span class="kk">Input window</span><span class="kval">72h rolling</span></div>
+            <div class="krow"><span class="kk">Accuracy</span><span class="kval ok">96.4%</span></div>
+            <div class="krow"><span class="kk">Inference</span><span class="kval">&lt;50 ms</span></div>
+            <div class="krow"><span class="kk">Status</span><span class="kval ok">&#9679; Running</span></div>
+          </div>
+          <div class="pcard">
+            <div class="ptitle">Random Forest</div>
+            <div class="krow"><span class="kk">Estimators</span><span class="kval">500 trees</span></div>
+            <div class="krow"><span class="kk">Features</span><span class="kval">47 channels</span></div>
+            <div class="krow"><span class="kk">F1 score</span><span class="kval ok">93.9%</span></div>
+            <div class="krow"><span class="kk">Classes</span><span class="kval">4 damage states</span></div>
+            <div class="krow"><span class="kk">Status</span><span class="kval ok">&#9679; Running</span></div>
+          </div>
+          <div class="pcard">
+            <div class="ptitle">Azure Machine Learning</div>
+            <div class="krow"><span class="kk">Compute</span><span class="kval">NC6s_v3 GPU</span></div>
+            <div class="krow"><span class="kk">Training</span><span class="kval">AutoML</span></div>
+            <div class="krow"><span class="kk">Deploy</span><span class="kval">AKS cluster</span></div>
+            <div class="krow"><span class="kk">Last train</span><span class="kval">4h ago</span></div>
+            <div class="krow"><span class="kk">Status</span><span class="kval ok">&#9679; Active</span></div>
+          </div>
+        </div>
+        <div class="pcard">
+          <div class="ptitle">30-Day Failure Probability &mdash; AI Prediction</div>
+          <div id="rbars"></div>
+        </div>
+        <div class="pcard">
+          <div class="ptitle">Live Anomaly Detection &mdash; 3&sigma; threshold</div>
+          <canvas id="canom" height="100"></canvas>
+        </div>
+        <div class="pcard">
+          <div class="ptitle">AI Decision Log</div>
+          <div id="ailog"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right">
+    <div class="pcard">
+      <div class="ptitle">System Controls</div>
+      <div class="tgrow"><span style="font-size:10px;color:#4a6080;">Live simulation</span><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="tgrow"><span style="font-size:10px;color:#4a6080;">AI prediction</span><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="tgrow"><span style="font-size:10px;color:#4a6080;">Azure IoT sync</span><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="tgrow"><span style="font-size:10px;color:#4a6080;">LiDAR scan</span><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="tgrow"><span style="font-size:10px;color:#4a6080;">Auto-alert</span><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+      <div style="margin-top:8px;">
+        <div class="ctrl"><span class="cl">Wind (m/s)</span><input type="range" min="0" max="60" value="39" oninput="document.getElementById('wv').textContent=this.value"><span class="cv" id="wv">39</span></div>
+        <div class="ctrl"><span class="cl">Load factor</span><input type="range" min="10" max="20" value="14" oninput="document.getElementById('lfv').textContent=(this.value/10).toFixed(1)+'x'"><span class="cv" id="lfv">1.4x</span></div>
+        <div class="ctrl"><span class="cl">Sim speed</span><input type="range" min="1" max="10" value="5" oninput="document.getElementById('spv').textContent=this.value+'x'"><span class="cv" id="spv">5x</span></div>
+      </div>
+      <div style="margin-top:8px;">
+        <button class="abtn abg">&#9654; Run ANSYS Solve</button>
+        <button class="abtn abw">&#9888; Trigger AI Predict</button>
+        <button class="abtn abr">&#9632; Pause All Systems</button>
+      </div>
+    </div>
+    <div class="pcard">
+      <div class="ptitle">Active Alerts</div>
+      <div id="alist"></div>
+    </div>
+    <div class="pcard">
+      <div class="ptitle">Modal Mode Status</div>
+      <div class="krow"><span class="kk">Mode 1 lateral X</span><span class="kval wn">2.14 Hz &#8595;7.4%</span></div>
+      <div class="krow"><span class="kk">Mode 2 lateral Y</span><span class="kval ok">2.89 Hz &#10003;</span></div>
+      <div class="krow"><span class="kk">Mode 3 torsional</span><span class="kval ok">5.67 Hz &#10003;</span></div>
+      <div class="krow"><span class="kk">Mode 4 bending</span><span class="kval wn">8.31 Hz &#8595;3.1%</span></div>
+      <div style="margin-top:8px;">
+        <div style="font-size:9px;color:#4a6080;margin-bottom:4px;">Stiffness Degradation Index (SDI)</div>
+        <div style="height:5px;background:#0e1828;border-radius:3px;"><div style="width:74%;height:100%;background:#e65100;border-radius:3px;"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#4a6080;margin-top:3px;"><span>SDI: 0.74</span><span>Baseline: 1.00</span></div>
+      </div>
+    </div>
+    <div class="pcard">
+      <div class="ptitle">Fatigue &amp; Crack (Paris Law)</div>
+      <div class="krow"><span class="kk">Miner damage D</span><span class="kval wn">0.79</span></div>
+      <div class="krow"><span class="kk">Crack length a</span><span class="kval er">4.7 mm</span></div>
+      <div class="krow"><span class="kk">Critical ac</span><span class="kk">8.2 mm</span></div>
+      <div class="krow"><span class="kk">Remaining life</span><span class="kval wn">8.3 yr</span></div>
+      <div class="krow"><span class="kk">da/dN</span><span class="kk">3.2&times;10&#8315;&#8309;</span></div>
+      <div class="krow"><span class="kk">Inspect interval</span><span class="kval">6 months</span></div>
+    </div>
+    <div class="pcard">
+      <div class="ptitle">Edge Compute Nodes</div>
+      <div class="krow"><span class="kk">Edge-01 F1-F2</span><span class="kval ok">Online 34%</span></div>
+      <div class="krow"><span class="kk">Edge-02 F3</span><span class="kval wn">High 87%</span></div>
+      <div class="krow"><span class="kk">Edge-03 RF</span><span class="kval er">Strained 94%</span></div>
+      <div class="krow"><span class="kk">Edge-04 Base</span><span class="kval ok">Online 21%</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div id="statusbar">
+  <div class="si"><div class="sd" style="background:#66bb6a;"></div>Revit API</div>
+  <div class="si"><div class="sd" style="background:#66bb6a;"></div>ANSYS Running</div>
+  <div class="si"><div class="sd" style="background:#4fc3f7;"></div>Azure IoT Hub</div>
+  <div class="si"><div class="sd" style="background:#9c27b0;"></div>Azure ML</div>
+  <div class="si"><div class="sd" style="background:#4fc3f7;"></div>Unity 6 WebGL</div>
+  <div class="si"><div class="sd pl" style="background:#ffb74d;"></div>LiDAR Active</div>
+  <div style="flex:1;"></div>
+  <span style="font-size:9px;color:#4a6080;">BIMobject Digital Twin v2.4 &middot; Revit+ANSYS+Azure+Unity &middot; Frame: <span id="fc">0</span></span>
+</div>
+
+<script>
+// ─── CLOCK ───────────────────────────────────────────────────────────────────
+let ss=0;
+setInterval(()=>{
+  document.getElementById('clk').textContent=new Date().toLocaleTimeString('en-GB');
+  ss++;
+  document.getElementById('htime').textContent='Sim: '+String(Math.floor(ss/3600)).padStart(2,'0')+':'+String(Math.floor(ss/60)%60).padStart(2,'0')+':'+String(ss%60).padStart(2,'0');
+},1000);
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function sw(btn,id){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('p-'+id).classList.add('on');
+  if(id==='ansys')setTimeout(initAnsys,80);
+  if(id==='cfd')setTimeout(initCFD,80);
+  if(id==='azure')setTimeout(initAzure,80);
+  if(id==='ai')setTimeout(initAI,80);
+}
+
+// ─── SENSORS ─────────────────────────────────────────────────────────────────
+const SENS=[
+  {id:'S-A01',loc:'F1 NW',v:()=>(0.40+Math.random()*.08).toFixed(2)+' mg',s:'ok'},
+  {id:'S-A03',loc:'F2 NE',v:()=>(2.70+Math.random()*.25).toFixed(2)+' mg',s:'warn'},
+  {id:'S-V02',loc:'RF Col-NE',v:()=>'ALERT',s:'crit'},
+  {id:'S-C01',loc:'F1 SW',v:()=>(0.28+Math.random()*.06).toFixed(2)+' mm',s:'ok'},
+  {id:'S-S02',loc:'F2 N', v:()=>Math.round(308+Math.random()*8)+' µε',s:'ok'},
+  {id:'S-T01',loc:'F1 E', v:()=>(0.003+Math.random()*.0005).toFixed(4)+'°',s:'ok'},
+  {id:'S-P02',loc:'F2 S', v:()=>(46+Math.random()*4).toFixed(1)+' kPa',s:'warn'},
+  {id:'S-D01',loc:'Base W',v:()=>(1.6+Math.random()*.15).toFixed(1)+' mm',s:'ok'},
+];
+const SC={ok:'#66bb6a',warn:'#ffb74d',crit:'#ef5350'};
+document.getElementById('slist').innerHTML=SENS.map(s=>
+  `<div class="sr"><div class="sdot" style="background:${SC[s.s]};"></div><div class="sn">${s.id} &middot; ${s.loc}</div><div class="sv ${s.s==='crit'?'er':s.s==='warn'?'wn':''}" id="sv-${s.id}">${s.v()}</div></div>`
+).join('');
+setInterval(()=>SENS.forEach(s=>{const e=document.getElementById('sv-'+s.id);if(e)e.textContent=s.v();}),1400);
+
+// ─── LIVE KPIs ───────────────────────────────────────────────────────────────
+const LCS=['DL+LL+WL','Seismic MCE','Wind+EQ','Fatigue'];let lci=0;
+setInterval(()=>{
+  document.getElementById('k1').innerHTML=(13.8+Math.random()*1.2).toFixed(1)+' <span style="font-size:11px;">mm</span>';
+  document.getElementById('k2').innerHTML=(0.72+Math.random()*.08).toFixed(2)+' <span style="font-size:11px;">kPa</span>';
+  document.getElementById('k3').innerHTML=Math.round(15+Math.random()*8)+'<span style="font-size:11px;">%</span>';
+  document.getElementById('asstep').textContent=Math.round(80+Math.random()*20)+'/100';
+  document.getElementById('asconv').textContent=(0.0008+Math.random()*.001).toFixed(4);
+  document.getElementById('ahs').textContent=Math.round(182+Math.random()*10)+' MPa';
+  document.getElementById('ahd').textContent=(13.8+Math.random()*1.2).toFixed(1)+' mm';
+  document.getElementById('ahf').textContent=(1.18+Math.random()*.05).toFixed(2)+'x';
+  const l=LCS[lci%4];
+  document.getElementById('aslc').textContent=l;
+  document.getElementById('ahlc').textContent='Load case: '+l;
+  lci++;
+},2500);
+
+// ─── ALERTS ──────────────────────────────────────────────────────────────────
+document.getElementById('alist').innerHTML=[
+  ['#ef5350','S-V02 Col-NE vibration 2.9× limit','2 min &middot; CRITICAL'],
+  ['#ffb74d','S-A03 F2 NE spike 2.84mg detected','18 min &middot; WARNING'],
+  ['#ffb74d','Seismic IDR 1/248 near code limit 1/250','32 min &middot; WARNING'],
+  ['#ffb74d','Fatigue D=0.79 &mdash; inspection due','2h &middot; WARNING'],
+  ['#4fc3f7','LiDAR scan #47 &mdash; 3 anomalies flagged','4h &middot; INFO'],
+  ['#4fc3f7','Azure ML retrained &mdash; accuracy 96.4%','6h &middot; INFO'],
+].map(([c,t,m])=>`<div class="ali"><div class="adot" style="background:${c};"></div><div><div class="atxt">${t}</div><div class="atm">${m}</div></div></div>`).join('');
+
+// ─── RISK BARS ───────────────────────────────────────────────────────────────
+document.getElementById('rbars').innerHTML=[
+  ['Col-NE RF',72,'#ef5350'],['Roof slab',38,'#ffb74d'],['F2 beam W',14,'#66bb6a'],['Foundation',5,'#66bb6a'],['Glazing',22,'#ffb74d'],
+].map(([k,v,c])=>`<div class="rbar"><div class="rl">${k}</div><div class="rt"><div class="rf" style="width:${v}%;background:${c};"></div></div><div class="rn" style="color:${c};">${v}%</div></div>`).join('');
+
+// ─── AI LOG ──────────────────────────────────────────────────────────────────
+document.getElementById('ailog').innerHTML=[
+  ['now','#66bb6a','LSTM: Frequency shift −7.4% → Pre-damage state predicted'],
+  ['−2m','#ffb74d','Anomaly: 3.2σ spike on S-A03 — alert triggered'],
+  ['−8m','#66bb6a','RUL update: Col-NE remaining life = 8.1 years'],
+  ['−14m','#66bb6a','Azure ML retrain complete — accuracy improved to 96.4%'],
+  ['−22m','#4fc3f7','Miner D recalculated = 0.79 — 6-month inspect scheduled'],
+].map(([t,c,m])=>`<div class="logrow"><span class="logt">${t}</span><span style="color:${c};">${m}</span></div>`).join('');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 3D BUILDING MODEL — full canvas isometric renderer
+// ═══════════════════════════════════════════════════════════════════════════
+const c3=document.getElementById('c3d');
+let ov='stress',isDrag=false,lmx=0,lmy=0,rotY=0.6,rotX=0.22,zm=1.0;
+let fr3=0,lastT3=performance.now(),fps3=60;
+
+function setOv(btn,o){
+  document.querySelectorAll('.ob').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); ov=o;
+  document.getElementById('hovtxt').textContent='Overlay: '+o.toUpperCase()+(o==='stress'?' (Von Mises)':o==='modal'?' (Deformation)':o==='sensor'?' (IoT Network)':o==='xray'?' (Transparent)':' (FEM Mesh)');
+}
+
+c3.addEventListener('mousedown',e=>{isDrag=true;lmx=e.clientX;lmy=e.clientY;e.preventDefault();});
+window.addEventListener('mousemove',e=>{
+  if(!isDrag)return;
+  rotY+=(e.clientX-lmx)*.01; rotX+=(e.clientY-lmy)*.008;
+  rotX=Math.max(-.45,Math.min(.88,rotX));
+  lmx=e.clientX;lmy=e.clientY;
+  document.getElementById('hrot').textContent='Rot: '+(rotY*57.3|0)+'° &nbsp;|&nbsp; Tilt: '+(rotX*57.3|0)+'° &nbsp;|&nbsp; Manual control';
+});
+window.addEventListener('mouseup',()=>isDrag=false);
+c3.addEventListener('wheel',e=>{e.preventDefault();zm=Math.max(.45,Math.min(2.8,zm+e.deltaY*.0012));},{passive:false});
+
+// Colour ramps
+function stressColor(v,crit,ts){
+  if(crit) return `rgba(${150+Math.sin(ts*.005)*20|0},18,18,0.92)`;
+  v=Math.max(0,Math.min(1,v));
+  let r,g,b;
+  if(v<.28){r=13+v/.28*8;g=71+v/.28*30;b=161+v/.28*31;}
+  else if(v<.5){const t=(v-.28)/.22;r=21+t*228;g=101+t*60;b=192-t*192;}
+  else if(v<.72){const t=(v-.5)/.22;r=249;g=161-t*100;b=t*0;}
+  else{const t=(v-.72)/.28;r=249-t*66;g=61-t*61;b=0;}
+  if(ov==='modal'){r=26+v*110;g=35+v*0;b=126+v*50;}
+  if(ov==='xray')return `rgba(20,70,160,0.18)`;
+  if(ov==='wire')return 'transparent';
+  return`rgba(${r|0},${g|0},${b|0},0.90)`;
+}
+function faceEdge(v,crit){
+  if(ov==='wire')return'rgba(79,195,247,0.55)';
+  if(ov==='xray')return'rgba(79,195,247,0.3)';
+  if(crit)return'rgba(239,83,80,0.9)';
+  return`rgba(79,195,247,${0.10+v*.18})`;
+}
+
+function drawFace(ctx,pts,fill,stroke,lw){
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);
+  ctx.closePath();
+  if(fill&&fill!=='transparent'){ctx.fillStyle=fill;ctx.fill();}
+  ctx.strokeStyle=stroke;ctx.lineWidth=lw||.6;ctx.stroke();
+}
+
+function draw3D(ts){
+  requestAnimationFrame(draw3D);
+  const dt=ts-lastT3;lastT3=ts;fps3=Math.round(.92*fps3+.08*(1000/Math.max(1,dt)));
+  fr3++;
+  if(fr3%20===0){document.getElementById('hfps').textContent='FPS: '+fps3;document.getElementById('fc').textContent=fr3;}
+  if(!isDrag)rotY+=.0016;
+
+  const cont=document.getElementById('twin-container');
+  const W=cont.clientWidth,H=cont.clientHeight;
+  if(!W||!H)return;
+  if(c3.width!==W||c3.height!==H){c3.width=W;c3.height=H;}
+  const ctx=c3.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // BG + grid
+  ctx.fillStyle='#02060f';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(18,36,65,0.55)';ctx.lineWidth=0.5;
+  for(let i=0;i<W;i+=38){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,H);ctx.stroke();}
+  for(let i=0;i<H;i+=38){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(W,i);ctx.stroke();}
+
+  // Projection
+  const sc=Math.min(W,H)*.024*zm;
+  const cosY=Math.cos(rotY),sinY=Math.sin(rotY);
+  const cosX=Math.cos(rotX-.18),sinX=Math.sin(rotX-.18);
+  const ox=W*.46,oy=H*.73;
+
+  function iso(x,y,z){
+    const rx=x*cosY-z*sinY;
+    const rz=x*sinY+z*cosY;
+    const projY=(y*cosX-rz*sinX)*sc;
+    const projZ=(y*sinX+rz*cosX)*sc*.44;
+    return{x:ox+rx*sc, y:oy-projY-projZ};
+  }
+
+  // Ground
+  const gpts=[iso(-16,-.4,-11),iso(18,-.4,-11),iso(18,-.4,11),iso(-16,-.4,11)];
+  drawFace(ctx,gpts,'#030810','#0a1828',.4);
+  // Ground grid
+  ctx.strokeStyle='rgba(14,32,60,0.55)';ctx.lineWidth=.4;
+  for(let gx=-14;gx<=16;gx+=2){const a=iso(gx,-.35,-10),b=iso(gx,-.35,10);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+  for(let gz=-10;gz<=10;gz+=2){const a=iso(-14,-.35,gz),b=iso(16,-.35,gz);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+
+  // Building dims: BIMobject showroom 10×7m plan, 4 floors
+  const BW=10,BD=7,FH=3.4,NF=4;
+  const stressPerFloor=[.22,.40,.70,.90];
+  const colPositions=[[-BW/2,-BD/2],[0,-BD/2],[BW/2,-BD/2],[-BW/2,BD/2],[0,BD/2],[BW/2,BD/2]];
+
+  // Draw each floor bottom→top
+  for(let f=0;f<NF;f++){
+    const y0=f*FH,y1=(f+1)*FH;
+    const sv=stressPerFloor[f];
+    const isCF=(f===NF-1);
+
+    // Right face (x=BW/2)
+    const rf=[iso(BW/2,y0,-BD/2),iso(BW/2,y0,BD/2),iso(BW/2,y1,BD/2),iso(BW/2,y1,-BD/2)];
+    drawFace(ctx,rf,stressColor(sv*.78,false,ts),faceEdge(sv,false),.45);
+
+    // Left face (x=-BW/2)
+    const lf=[iso(-BW/2,y0,-BD/2),iso(-BW/2,y0,BD/2),iso(-BW/2,y1,BD/2),iso(-BW/2,y1,-BD/2)];
+    drawFace(ctx,lf,stressColor(sv*.88,false,ts),faceEdge(sv,false),.5);
+
+    // Front face (z=-BD/2) — main facade with windows
+    const ff=[iso(-BW/2,y0,-BD/2),iso(BW/2,y0,-BD/2),iso(BW/2,y1,-BD/2),iso(-BW/2,y1,-BD/2)];
+    drawFace(ctx,ff,stressColor(sv,isCF,ts),faceEdge(sv,isCF),.6);
+
+    // Slab top
+    const sl=[iso(-BW/2,y1,-BD/2),iso(BW/2,y1,-BD/2),iso(BW/2,y1,BD/2),iso(-BW/2,y1,BD/2)];
+    const slFill=ov==='xray'?'rgba(15,45,95,0.15)':ov==='wire'?'transparent':`rgba(${f>=2?55:20},${f>=2?22:38},${f>=2?10:65},0.82)`;
+    drawFace(ctx,sl,slFill,ov==='wire'?'rgba(79,195,247,0.38)':'rgba(79,195,247,0.22)',.5);
+
+    // Floor edge highlight lines
+    ctx.strokeStyle='rgba(79,195,247,0.5)';ctx.lineWidth=.9;
+    const e0=iso(-BW/2,y1,-BD/2),e1=iso(BW/2,y1,-BD/2),e2=iso(BW/2,y1,BD/2),e3=iso(-BW/2,y1,BD/2);
+    ctx.beginPath();ctx.moveTo(e0.x,e0.y);ctx.lineTo(e1.x,e1.y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(e0.x,e0.y);ctx.lineTo(e3.x,e3.y);ctx.stroke();
+
+    // Curtain wall windows (showroom large glazing — front)
+    if(ov!=='wire'){
+      const wH=FH*.64,wY=y0+FH*.18;
+      const isHot=f>=2;
+      const wFill=isHot?`rgba(255,${f===3?70:130},20,0.22)`:'rgba(79,195,247,0.18)';
+      const wEdge=isHot?`rgba(255,${f===3?110:155},40,0.6)`:'rgba(79,195,247,0.55)';
+      for(let wi=0;wi<3;wi++){
+        const wx=-BW/2+1.2+wi*3.1;
+        const wW=2.5;
+        const wp=[iso(wx,wY,-BD/2-.02),iso(wx+wW,wY,-BD/2-.02),iso(wx+wW,wY+wH,-BD/2-.02),iso(wx,wY+wH,-BD/2-.02)];
+        drawFace(ctx,wp,wFill,wEdge,.8);
+        // Horizontal rail
+        const rm=iso(wx,wY+wH*.5,-BD/2-.02),rm2=iso(wx+wW,wY+wH*.5,-BD/2-.02);
+        ctx.beginPath();ctx.moveTo(rm.x,rm.y);ctx.lineTo(rm2.x,rm2.y);ctx.strokeStyle=wEdge;ctx.lineWidth=.5;ctx.stroke();
+        // Vertical mullion
+        const vm=iso(wx+wW/2,wY,-BD/2-.02),vm2=iso(wx+wW/2,wY+wH,-BD/2-.02);
+        ctx.beginPath();ctx.moveTo(vm.x,vm.y);ctx.lineTo(vm2.x,vm2.y);ctx.stroke();
+      }
+      // Side glazing panels
+      for(let wi=0;wi<2;wi++){
+        const wz=-BD/2+1.0+wi*4.0;
+        const wp=[iso(-BW/2-.02,wY,wz),iso(-BW/2-.02,wY,wz+2.8),iso(-BW/2-.02,wY+wH,wz+2.8),iso(-BW/2-.02,wY+wH,wz)];
+        drawFace(ctx,wp,'rgba(79,195,247,0.12)','rgba(79,195,247,0.38)',.6);
+      }
+    }
+
+    // Columns
+    const cW=0.36;
+    colPositions.forEach(([cx,cz])=>{
+      const isCrit=isCF&&Math.abs(cx-BW/2)<.1&&Math.abs(cz+BD/2)<.1;
+      const cFill=isCrit?`rgba(${160+Math.sin(ts*.004)*25|0},16,16,0.93)`:'rgba(52,65,82,0.88)';
+      const cEdge=isCrit?`rgba(239,83,80,${0.85+Math.sin(ts*.005)*.12})`:'rgba(79,195,247,0.22)';
+      const cLW=isCrit?1.1:.45;
+      // Front face of column
+      const cf=[iso(cx-cW/2,y0,cz-cW/2),iso(cx+cW/2,y0,cz-cW/2),iso(cx+cW/2,y1,cz-cW/2),iso(cx-cW/2,y1,cz-cW/2)];
+      if(ov!=='wire') drawFace(ctx,cf,cFill,cEdge,cLW);
+      // Top cap
+      const ct=[iso(cx-cW/2,y1,cz-cW/2),iso(cx+cW/2,y1,cz-cW/2),iso(cx+cW/2,y1,cz+cW/2),iso(cx-cW/2,y1,cz+cW/2)];
+      if(ov!=='wire') drawFace(ctx,ct,isCrit?'rgba(140,14,14,.85)':'rgba(55,68,86,.82)',cEdge,.4);
+      // Wire mode vertical line
+      if(ov==='wire'){
+        const cb=iso(cx,y0,cz),ct2=iso(cx,y1,cz);
+        ctx.beginPath();ctx.moveTo(cb.x,cb.y);ctx.lineTo(ct2.x,ct2.y);
+        ctx.strokeStyle=isCrit?'rgba(239,83,80,.9)':'rgba(79,195,247,.5)';ctx.lineWidth=isCrit?1.2:.7;ctx.stroke();
+      }
+      // Critical glow
+      if(isCrit){
+        const cp=iso(cx,y0+FH*.5,cz);
+        ctx.beginPath();ctx.arc(cp.x,cp.y,12,0,Math.PI*2);
+        ctx.fillStyle=`rgba(239,83,80,${0.05+Math.sin(ts*.004)*.04})`;ctx.fill();
+        ctx.beginPath();ctx.arc(cp.x,cp.y,5,0,Math.PI*2);
+        ctx.fillStyle=`rgba(239,83,80,${0.78+Math.sin(ts*.004)*.18})`;ctx.fill();
+        ctx.strokeStyle='rgba(239,83,80,0.55)';ctx.lineWidth=.9;ctx.stroke();
+      }
+    });
+
+    // Beams
+    const bC=f>=2?`rgba(${f===3?158:125},${f===3?38:52},12,0.72)`:'rgba(52,68,88,0.62)';
+    const bLW=ov==='wire'?.7:2.2;
+    const bSC=ov==='wire'?'rgba(79,195,247,0.42)':bC;
+    [
+      [[-BW/2,y1-.22,-BD/2],[BW/2,y1-.22,-BD/2]],
+      [[-BW/2,y1-.22, BD/2],[BW/2,y1-.22, BD/2]],
+      [[-BW/2,y1-.22,-BD/2],[-BW/2,y1-.22,BD/2]],
+      [[ BW/2,y1-.22,-BD/2],[ BW/2,y1-.22,BD/2]],
+      [[    0,y1-.22,-BD/2],[    0,y1-.22,BD/2]],
+    ].forEach(([a,b])=>{
+      const pa=iso(...a),pb=iso(...b);
+      ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);
+      ctx.strokeStyle=bSC;ctx.lineWidth=bLW;ctx.stroke();
+    });
+  }
+
+  // Roof
+  const rPts=[iso(-BW/2,NF*FH,-BD/2),iso(BW/2,NF*FH,-BD/2),iso(BW/2,NF*FH,BD/2),iso(-BW/2,NF*FH,BD/2)];
+  const rFill=ov==='xray'?'rgba(10,38,88,0.14)':ov==='wire'?'transparent':'rgba(10,18,32,0.95)';
+  drawFace(ctx,rPts,rFill,'rgba(79,195,247,0.5)',1.1);
+  // Parapet
+  const parH=.75;
+  [[iso(-BW/2,NF*FH+parH,-BD/2),iso(BW/2,NF*FH+parH,-BD/2)],
+   [iso(-BW/2,NF*FH+parH,-BD/2),iso(-BW/2,NF*FH+parH,BD/2)]].forEach(([a,b])=>{
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle='rgba(79,195,247,0.38)';ctx.lineWidth=.9;ctx.stroke();
+  });
+  // Parapet front face
+  const pp=[iso(-BW/2,NF*FH,-BD/2),iso(BW/2,NF*FH,-BD/2),iso(BW/2,NF*FH+parH,-BD/2),iso(-BW/2,NF*FH+parH,-BD/2)];
+  drawFace(ctx,pp,'rgba(14,22,38,0.85)','rgba(79,195,247,0.35)',.5);
+
+  // Sensors
+  if(ov==='sensor'||ov==='stress'||ov==='xray'){
+    const SNS=[
+      {x:-BW/2,y:FH*.8,z:-BD/2,c:'#66bb6a',s:'ok'},
+      {x:BW/2, y:FH*1.8,z:-BD/2,c:'#ffb74d',s:'warn'},
+      {x:BW/2, y:NF*FH+.6,z:BD/2,c:'#ef5350',s:'crit'},
+      {x:0,    y:FH*1.5,z:-BD/2,c:'#66bb6a',s:'ok'},
+      {x:-BW/2,y:FH*.4,z:BD/2, c:'#66bb6a',s:'ok'},
+    ];
+    const pulse=Math.sin(ts*.005)*.4+.6;
+    SNS.forEach(sn=>{
+      const pt=iso(sn.x,sn.y,sn.z);
+      // Glow ring
+      const gi=sn.s==='crit'?pulse:.6;
+      ctx.beginPath();ctx.arc(pt.x,pt.y,11,0,Math.PI*2);
+      ctx.fillStyle=sn.c+(Math.round(gi*45).toString(16).padStart(2,'0'));ctx.fill();
+      // Dot
+      ctx.beginPath();ctx.arc(pt.x,pt.y,4.8,0,Math.PI*2);
+      ctx.fillStyle=sn.c;ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=.9;ctx.stroke();
+    });
+  }
+
+  // LiDAR beams
+  const liP=iso(0,NF*FH+1.4,0);
+  ctx.beginPath();ctx.arc(liP.x,liP.y,5,0,Math.PI*2);ctx.fillStyle='rgba(29,158,117,0.88)';ctx.fill();
+  ctx.fillStyle='rgba(29,158,117,0.7)';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText('LiDAR',liP.x,liP.y-8);
+  [[BW/2,FH,- BD/2],[-BW/2,FH*2,BD/2],[0,0,-BD/2],[BW/2,NF*FH,BD/2]].forEach(([tx,ty,tz])=>{
+    const tp=iso(tx,ty,tz);
+    const a=(Math.sin(ts*.0028+tx)*.22+.22).toFixed(2);
+    ctx.beginPath();ctx.moveTo(liP.x,liP.y);ctx.lineTo(tp.x,tp.y);
+    ctx.strokeStyle=`rgba(29,158,117,${a})`;ctx.lineWidth=.65;ctx.setLineDash([2,5]);ctx.stroke();ctx.setLineDash([]);
+  });
+
+  // Crack indicator
+  const cr1=iso(-BW/2+.15,FH*.84,-BD/2),cr2=iso(-BW/2+.5,FH*1.08,-BD/2);
+  ctx.beginPath();ctx.moveTo(cr1.x,cr1.y);ctx.lineTo(cr2.x,cr2.y);
+  ctx.strokeStyle='rgba(239,83,80,0.92)';ctx.lineWidth=1.6;ctx.setLineDash([2,2]);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(239,83,80,0.85)';ctx.font='8px monospace';ctx.textAlign='left';ctx.fillText('crack 0.31mm',cr2.x+3,cr2.y);
+
+  // Stress colorbar
+  const cbX=W-42,cbY=H*.16,cbH=H*.52;
+  const grad=ctx.createLinearGradient(0,cbY,0,cbY+cbH);
+  grad.addColorStop(0,'#b71c1c');grad.addColorStop(.22,'#e64a19');grad.addColorStop(.44,'#f9a825');
+  grad.addColorStop(.66,'#00838f');grad.addColorStop(1,'#0d47a1');
+  ctx.fillStyle=grad;ctx.fillRect(cbX,cbY,12,cbH);
+  ctx.strokeStyle='rgba(79,195,247,0.28)';ctx.lineWidth=.5;ctx.strokeRect(cbX,cbY,12,cbH);
+  ctx.fillStyle='rgba(120,155,185,0.82)';ctx.font='8px monospace';ctx.textAlign='left';
+  [['187 MPa',0],['130 MPa',.28],['80 MPa',.55],['40 MPa',.80],['0 MPa',1]].forEach(([l,p])=>ctx.fillText(l,cbX+16,cbY+p*cbH+3));
+  ctx.save();ctx.translate(cbX+6,cbY-7);ctx.textAlign='center';ctx.fillStyle='rgba(79,195,247,.7)';ctx.fillText('σ (MPa)',0,0);ctx.restore();
+
+  // Axes
+  const axO=iso(-.8,0,-.8);
+  [['X','#ff5252',[5.5,0,0]],['Y','#69f0ae',[0,5.5,0]],['Z','#448aff',[0,0,5.5]]].forEach(([l,c,[ax,ay,az]])=>{
+    const p=iso(ax-.8,ay,az-.8);
+    ctx.beginPath();ctx.moveTo(axO.x,axO.y);ctx.lineTo(p.x,p.y);ctx.strokeStyle=c;ctx.lineWidth=1.3;ctx.stroke();
+    ctx.fillStyle=c;ctx.font='10px monospace';ctx.textAlign='center';ctx.fillText(l,p.x,p.y-5);
+  });
+
+  // Floor labels
+  ctx.fillStyle='rgba(150,178,204,0.65)';ctx.font='9px monospace';ctx.textAlign='left';
+  for(let f=0;f<=NF;f++){
+    const lp=iso(BW/2+.6,f*FH+.1,BD/2);
+    ctx.fillText(f===NF?'Roof':'Floor '+(f+1),lp.x+3,lp.y+2);
+  }
+
+  // Compass direction
+  ctx.fillStyle='rgba(79,195,247,0.5)';ctx.font='9px monospace';ctx.textAlign='center';
+  const np=iso(0,-.3,-BD/2-2);
+  ctx.fillText('N',np.x,np.y);
+}
+requestAnimationFrame(draw3D);
+
+// ─── WAVE ────────────────────────────────────────────────────────────────────
+const cw=document.getElementById('cwave');
+const wData=new Array(800).fill(0).map(()=>Math.random()*.1);
+function drawWave(){
+  const W=cw.parentElement.clientWidth||600;
+  if(cw.width!==W){cw.width=W;}
+  cw.height=62;
+  const ctx=cw.getContext('2d'),H=62,mid=H*.5;
+  wData.shift();
+  const t=Date.now()*.001;
+  const v=Math.sin(t*2.1)*.32+Math.sin(t*7.3)*.11+Math.random()*.06+(Math.sin(t*.32)>.72?.42:0);
+  wData.push(v);
+  ctx.fillStyle='#060d1a';ctx.fillRect(0,0,W,H);
+  ctx.beginPath();ctx.moveTo(0,mid);
+  wData.forEach((d,i)=>{if(i<W)ctx.lineTo(i,mid-d*mid*.72);});
+  ctx.strokeStyle='#4fc3f7';ctx.lineWidth=1.4;ctx.stroke();
+  ctx.lineTo(W,mid);ctx.lineTo(0,mid);ctx.closePath();
+  ctx.fillStyle='rgba(79,195,247,0.07)';ctx.fill();
+  ctx.strokeStyle='rgba(239,83,80,.4)';ctx.lineWidth=.8;ctx.setLineDash([3,2]);
+  ctx.beginPath();ctx.moveTo(0,mid-H*.3);ctx.lineTo(W,mid-H*.3);ctx.stroke();ctx.setLineDash([]);
+  requestAnimationFrame(drawWave);
+}
+drawWave();
+
+// ─── ANSYS FEA ────────────────────────────────────────────────────────────────
+let ansysOk=false;
+function initAnsys(){
+  if(ansysOk)return;ansysOk=true;
+  const c=document.getElementById('cansys');
+  function resize(){const p=document.getElementById('p-ansys');c.width=p.clientWidth||500;c.height=p.clientHeight||460;}
+  resize();
+  const ctx=c.getContext('2d');
+  function sc(v){
+    v=Math.max(0,Math.min(1,v));
+    let r,g,b;
+    if(v<.28){r=13;g=71+v/.28*30;b=161+v/.28*31;}
+    else if(v<.5){const t=(v-.28)/.22;r=13+t*236;g=101+t*60;b=192-t*192;}
+    else if(v<.72){const t=(v-.5)/.22;r=249;g=161-t*100;b=0;}
+    else{const t=(v-.72)/.28;r=249-t*66;g=61-t*61;b=0;}
+    return`rgb(${r|0},${g|0},${b|0})`;
+  }
+  function draw(ts){
+    const W=c.width,H=c.height;
+    ctx.fillStyle='#020810';ctx.fillRect(0,0,W,H);
+    const bx=W*.22,by=H*.05,bw=W*.56,bh=H*.87;
+    // Stress heatmap
+    for(let xi=0;xi<85;xi++)for(let yi=0;yi<85;yi++){
+      const nx=xi/84,ny=yi/84,px=bx+nx*bw,py=by+ny*bh;
+      if(nx<.03||nx>.97||ny<.03||ny>.97){ctx.fillStyle='#040a18';ctx.fillRect(px,py,bw/85+1,bh/85+1);continue;}
+      const cx2=(nx-.5)*2,cy2=(ny-.5)*2;
+      const corner=Math.exp(-5*Math.min((cx2-1)**2+(cy2-1)**2,(cx2+1)**2+(cy2-1)**2,(cx2-1)**2+(cy2+1)**2,(cx2+1)**2+(cy2+1)**2));
+      let sv=corner*.85+Math.exp(-4*cx2**2)*.18+Math.sin(ts*.0009+nx*7)*.04+(1-ny)*.22;
+      ctx.fillStyle=sc(Math.max(0,Math.min(1,sv)));
+      ctx.fillRect(px,py,bw/85+.8,bh/85+.8);
+    }
+    // Building outline
+    ctx.strokeStyle='rgba(79,195,247,.65)';ctx.lineWidth=1.6;ctx.strokeRect(bx,by,bw,bh);
+    // Floor lines
+    for(let f=1;f<4;f++){ctx.strokeStyle='rgba(79,195,247,.45)';ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(bx,by+f*bh/4);ctx.lineTo(bx+bw,by+f*bh/4);ctx.stroke();}
+    // Column lines
+    [bx,bx+bw*.5,bx+bw].forEach(x=>{ctx.strokeStyle='rgba(180,178,169,.32)';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(x,by);ctx.lineTo(x,by+bh);ctx.stroke();});
+    // Critical element glow
+    ctx.shadowColor='#ef5350';ctx.shadowBlur=18;ctx.fillStyle='rgba(239,83,80,.13)';ctx.fillRect(bx-3,by-3,10,bh+6);ctx.shadowBlur=0;
+    // Deformed shape overlay
+    ctx.strokeStyle='rgba(79,195,247,.3)';ctx.lineWidth=1.1;ctx.setLineDash([3,3]);
+    ctx.beginPath();
+    for(let y=by;y<=by+bh;y+=3){const n=(y-by)/bh;const d=Math.sin(n*Math.PI)*(1-n)*(9+Math.sin(ts*.001)*3.5);ctx.lineTo(bx+bw+d,y);}
+    ctx.stroke();ctx.setLineDash([]);
+    // FEM mesh
+    for(let mx=bx;mx<=bx+bw;mx+=bw/15){ctx.strokeStyle='rgba(79,195,247,.055)';ctx.lineWidth=.4;ctx.beginPath();ctx.moveTo(mx,by);ctx.lineTo(mx,by+bh);ctx.stroke();}
+    for(let my=by;my<=by+bh;my+=bh/20){ctx.strokeStyle='rgba(79,195,247,.055)';ctx.lineWidth=.4;ctx.beginPath();ctx.moveTo(bx,my);ctx.lineTo(bx+bw,my);ctx.stroke();}
+    // Colorbar
+    const cbX=W*.88,cbH=bh*.82,cbY=by+bh*.09;
+    const g=ctx.createLinearGradient(0,cbY,0,cbY+cbH);
+    g.addColorStop(0,'#b71c1c');g.addColorStop(.25,'#e64a19');g.addColorStop(.5,'#f9a825');g.addColorStop(.75,'#00acc1');g.addColorStop(1,'#0d47a1');
+    ctx.fillStyle=g;ctx.fillRect(cbX,cbY,13,cbH);
+    ctx.strokeStyle='rgba(79,195,247,.22)';ctx.lineWidth=.5;ctx.strokeRect(cbX,cbY,13,cbH);
+    ctx.fillStyle='rgba(115,148,178,.85)';ctx.font='8px monospace';ctx.textAlign='left';
+    [['224 MPa',0],['160 MPa',.28],['100 MPa',.55],['50 MPa',.78],['0 MPa',1]].forEach(([l,p])=>ctx.fillText(l,cbX+17,cbY+p*cbH+3));
+    // Floor labels left
+    ctx.fillStyle='rgba(140,170,196,.7)';ctx.font='9px monospace';ctx.textAlign='right';
+    for(let f=0;f<=4;f++){ctx.fillText(f===4?'Roof':'F'+(f+1),bx-6,by+f*bh/4+(f<4?bh/8:0)+3);}
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+// ─── CFD ─────────────────────────────────────────────────────────────────────
+let cfdOk=false;
+function initCFD(){
+  if(cfdOk)return;cfdOk=true;
+  const c=document.getElementById('ccfd');
+  const p=document.getElementById('p-cfd');
+  function resize(){c.width=p.clientWidth||540;c.height=p.clientHeight||460;}
+  resize();
+  const ctx=c.getContext('2d');
+
+  function vc(v){
+    v=Math.max(0,Math.min(1,v));
+    const s=[[0,'#010612'],[.12,'#031040'],[.28,'#1255a0'],[.46,'#0077aa'],[.62,'#00b8cc'],[.76,'#4fc3f7'],[.87,'#ffe066'],[1,'#ffffff']];
+    for(let i=1;i<s.length;i++){
+      if(v<=s[i][0]){
+        const t=(v-s[i-1][0])/(s[i][0]-s[i-1][0]);
+        const r=h=>parseInt(s[i-1][1].slice(h,h+2),16),q=h=>parseInt(s[i][1].slice(h,h+2),16);
+        return'rgb('+Math.round(r(1)+(q(1)-r(1))*t)+','+Math.round(r(3)+(q(3)-r(3))*t)+','+Math.round(r(5)+(q(5)-r(5))*t)+')';
+      }
+    }
+    return'#fff';
+  }
+
+  let sp=0;
+
+  function draw(ts){
+    const W=c.width,H=c.height;
+    if(!W||!H){requestAnimationFrame(draw);return;}
+    ctx.fillStyle='#010612';ctx.fillRect(0,0,W,H);
+
+    const domScale=W/54.0;
+    const cx=W*0.44,cy=H*0.50;
+
+    // BIMobject Showroom: main block 10x7m + entrance canopy 4x2m + rear wing 5x3m
+    const mW=10*domScale,mH=7*domScale;
+    const mx0=cx-mW/2,mx1=cx+mW/2,my0=cy-mH/2,my1=cy+mH/2;
+    const fwW=4*domScale,fwH=2*domScale;
+    const fw_x0=cx-fwW/2,fw_x1=cx+fwW/2,fw_y0=my0-fwH,fw_y1=my0;
+    const rW=4.5*domScale,rH=2.5*domScale;
+    const rw_x0=mx1-rW*0.5,rw_x1=mx1+rW*0.55,rw_y0=my1-rH,rw_y1=my1;
+
+    function inBld(px,py){
+      return(px>=mx0&&px<=mx1&&py>=my0&&py<=my1)||
+             (px>=fw_x0&&px<=fw_x1&&py>=fw_y0&&py<=fw_y1)||
+             (px>=rw_x0&&px<=rw_x1&&py>=rw_y0&&py<=rw_y1);
+    }
+    function bDist(px,py){
+      let d=1e9;
+      [[mx0,my0,mx1,my1],[fw_x0,fw_y0,fw_x1,fw_y1],[rw_x0,rw_y0,rw_x1,rw_y1]].forEach(([x0,y0,x1,y1])=>{
+        const dx=Math.max(x0-px,0,px-x1),dy=Math.max(y0-py,0,py-y1);
+        d=Math.min(d,Math.sqrt(dx*dx+dy*dy));
+      });
+      return d;
+    }
+
+    // Velocity field
+    const NC=110,NR=80,cw2=W/NC,ch2=H/NR;
+    for(let xi=0;xi<NC;xi++){
+      for(let yi=0;yi<NR;yi++){
+        const px=xi*cw2,py=yi*ch2,nx=px/W,ny=py/H;
+        if(inBld(px,py)){ctx.fillStyle='#0d1c32';ctx.fillRect(px,py,cw2+0.8,ch2+0.8);continue;}
+        const dist=bDist(px,py);
+        let U=0.36+0.28*Math.pow(Math.max(ny,0.02),0.14);
+        // Stagnation approach
+        if(nx>0.18&&nx<0.44&&py>=my0&&py<=my1){
+          const d2=(cx-mW/2-px)/W;
+          U*=Math.max(0.12,1.0-Math.exp(-d2*16)*0.88);
+        }
+        // Corner Venturi jets
+        if(Math.abs(px-mx0)<W*0.045&&(Math.abs(py-my0)<H*0.1||Math.abs(py-my1)<H*0.1)) U*=1.72;
+        if(Math.abs(px-fw_x0)<W*0.03&&Math.abs(py-fw_y0)<H*0.06) U*=1.48;
+        if(Math.abs(px-rw_x1)<W*0.04&&Math.abs(py-rw_y0)<H*0.06) U*=1.38;
+        // Wake recirculation
+        const inWake=(px>mx1&&px<mx1+W*0.26&&py>my0-H*0.06&&py<my1+H*0.06);
+        if(inWake){
+          const wd=(px-mx1)/(W*0.26);
+          U*=(wd>0.55?wd:Math.max(-0.32,wd-0.6));
+          // Karman vortex shedding
+          U+=Math.sin(sp*2.3+(px-mx1)/(W*0.055)+(yi*0.14))*0.16*Math.exp(-(px-mx1)/(W*0.19));
+        }
+        // Rear wing wake
+        if(px>rw_x1&&px<rw_x1+W*0.12&&py>rw_y0&&py<rw_y1) U*=0.55;
+        // Canopy wake
+        if(px>fw_x0&&px<fw_x1&&py>fw_y0-H*0.08&&py<fw_y0) U*=0.7;
+        U+=Math.sin(ts*0.0006+nx*8+ny*5)*0.035;
+        U=Math.max(-0.25,U);
+        ctx.fillStyle=vc(Math.min(1.82,Math.max(0,U))/1.82);
+        ctx.fillRect(px,py,cw2+0.6,ch2+0.6);
+      }
+    }
+
+    // Pressure overlays
+    const pZones=[
+      // [x0frac,x1frac,y0,y1,cpval,alpha]
+      [0.19,0.44,my0,my1,1.05,0.28],   // windward stag
+      [0.56,0.82,my0-H*0.05,my1+H*0.05,-1.35,0.28],  // leeward suction
+      [0.3,0.56,my0-H*0.13,my0,-0.70,0.22],  // top side
+      [0.3,0.56,my1,my1+H*0.13,-0.68,0.22],  // bottom side
+    ];
+    pZones.forEach(([x0f,x1f,py0,py1,cpv,al])=>{
+      const r=cpv>0?220:20,g=cpv>0?60:100,b=cpv>0?40:210;
+      ctx.fillStyle='rgba('+r+','+g+','+b+','+al+')';
+      ctx.fillRect(x0f*W,py0,(x1f-x0f)*W,py1-py0);
+    });
+
+    // Streamlines
+    sp+=0.016;
+    for(let si=0;si<16;si++){
+      const startY=H*0.05+si*(H*0.059);
+      ctx.beginPath();ctx.moveTo(4,startY);
+      let sx=4,sy=startY;
+      for(let st=0;st<130;st++){
+        if(sx>W-5)break;
+        if(inBld(sx,sy)){
+          const above=sy<cy;
+          sy+=above?-H*0.009:H*0.009;
+          sx+=W*0.005;
+          ctx.moveTo(sx,sy);
+          continue;
+        }
+        const d=bDist(sx,sy);
+        let vy=0;
+        if(d<W*0.18){
+          vy+=(sy-cy)/(Math.abs(sy-cy)+1)*Math.exp(-d/(W*0.09))*0.55;
+          if(sx>mx1) vy+=Math.sin(sp*2.3+(si*0.42)+(sx/(W*0.055)))*0.25*Math.exp(-(sx-mx1)/(W*0.21));
+        }
+        vy+=Math.sin((sy/H-0.5)*5+sp+si*0.35)*0.005;
+        sx+=W*0.009;sy+=vy*H*0.009;
+        sy=Math.max(3,Math.min(H-3,sy));
+        ctx.lineTo(sx,sy);
+      }
+      ctx.strokeStyle='rgba(255,255,255,'+(0.22+si*0.008)+')';
+      ctx.lineWidth=(si<3||si>12)?0.7:0.95;ctx.stroke();
+    }
+
+    // Building footprint — main block
+    ctx.fillStyle='#0d1c32';ctx.fillRect(mx0,my0,mW,mH);
+    ctx.strokeStyle='#4fc3f7';ctx.lineWidth=2.0;ctx.strokeRect(mx0,my0,mW,mH);
+    // Floor lines
+    for(let f=1;f<4;f++){ctx.strokeStyle='rgba(79,195,247,0.35)';ctx.lineWidth=0.7;ctx.beginPath();ctx.moveTo(mx0,my0+f*mH/4);ctx.lineTo(mx1,my0+f*mH/4);ctx.stroke();}
+    // Column grid
+    [[mx0+mW*.18,my0+mH*.2],[mx0+mW*.5,my0+mH*.2],[mx0+mW*.82,my0+mH*.2],
+     [mx0+mW*.18,my0+mH*.8],[mx0+mW*.5,my0+mH*.8],[mx0+mW*.82,my0+mH*.8]].forEach(([px2,py2])=>{
+      ctx.beginPath();ctx.arc(px2,py2,3,0,Math.PI*2);ctx.fillStyle='rgba(100,140,180,0.7)';ctx.fill();
+    });
+    // Curtain-wall glazing lines on front face
+    for(let wi=0;wi<3;wi++){
+      const wx=mx0+mW*(0.12+wi*0.32);
+      ctx.strokeStyle='rgba(79,195,247,0.22)';ctx.lineWidth=0.5;
+      ctx.beginPath();ctx.moveTo(wx,my0);ctx.lineTo(wx,my1);ctx.stroke();
+    }
+    // Entrance canopy
+    ctx.fillStyle='#0a1828';ctx.fillRect(fw_x0,fw_y0,fwW,fwH);
+    ctx.strokeStyle='rgba(79,195,247,0.6)';ctx.lineWidth=1.2;ctx.strokeRect(fw_x0,fw_y0,fwW,fwH);
+    ctx.strokeStyle='rgba(79,195,247,0.25)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(cx,fw_y0);ctx.lineTo(cx,fw_y1);ctx.stroke();
+    // Rear service wing
+    ctx.fillStyle='#0c1a2c';ctx.fillRect(rw_x0,rw_y0,rw_x1-rw_x0,rH);
+    ctx.strokeStyle='rgba(79,195,247,0.5)';ctx.lineWidth=1.1;ctx.strokeRect(rw_x0,rw_y0,rw_x1-rw_x0,rH);
+
+    // Labels
+    ctx.font='bold 10px monospace';ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,175,175,0.9)';ctx.fillText('WINDWARD',mx0-W*0.07,cy);ctx.fillText('Cp +1.04',mx0-W*0.07,cy+14);
+    ctx.fillStyle='rgba(144,202,249,0.9)';ctx.fillText('LEEWARD',mx1+W*0.07,cy);ctx.fillText('Cp -1.38',mx1+W*0.07,cy+14);
+    ctx.fillStyle='rgba(206,147,216,0.88)';ctx.fillText('Side suction',(mx0+mx1)/2,my0-H*0.09);ctx.fillText('Cp -0.72',(mx0+mx1)/2,my0-H*0.05);
+    ctx.fillStyle='rgba(206,147,216,0.88)';ctx.fillText('Side suction',(mx0+mx1)/2,my1+H*0.085);ctx.fillText('Cp -0.68',(mx0+mx1)/2,my1+H*0.055);
+    ctx.fillStyle='rgba(255,224,102,0.75)';ctx.font='8px monospace';ctx.fillText('Entrance canopy',cx,fw_y0-5);
+    ctx.fillStyle='rgba(130,160,190,0.6)';ctx.fillText('Service wing',(rw_x0+rw_x1)/2,rw_y0-5);
+
+    // Wind arrows
+    ctx.font='10px monospace';ctx.fillStyle='rgba(79,195,247,0.9)';
+    ctx.fillText('U = 39 m/s',W*0.07,H*0.06);ctx.fillText('ABL a=0.14',W*0.07,H*0.10);
+    for(let ay=my0+mH*0.1;ay<my1;ay+=mH*0.28){
+      ctx.strokeStyle='rgba(79,195,247,0.72)';ctx.lineWidth=1.3;
+      ctx.beginPath();ctx.moveTo(W*0.02,ay);ctx.lineTo(mx0-W*0.02,ay);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(mx0-W*0.02,ay);ctx.lineTo(mx0-W*0.04,ay-5);ctx.lineTo(mx0-W*0.04,ay+5);ctx.closePath();
+      ctx.fillStyle='rgba(79,195,247,0.72)';ctx.fill();
+    }
+
+    // Turbulence + Karman vortex labels
+    ctx.font='9px monospace';ctx.fillStyle='rgba(255,183,77,0.85)';
+    ctx.fillText('TI > 28%',mx1+W*0.12,cy-mH*0.28);ctx.fillText('Karman vortex',mx1+W*0.12,cy);ctx.fillText('shedding',mx1+W*0.12,cy+12);
+    [cy-mH*0.22,cy+mH*0.22].forEach((vy2,vi)=>{
+      const vx2=mx1+W*0.13;
+      ctx.beginPath();
+      for(let a=0;a<Math.PI*2.5;a+=0.1){
+        const r=(mH*0.075)*(a/(Math.PI*2.5));
+        const xo=vx2+r*Math.cos(a+(vi?-sp:sp));
+        const yo=vy2+r*Math.sin(a+(vi?-sp:sp));
+        a<0.11?ctx.moveTo(xo,yo):ctx.lineTo(xo,yo);
+      }
+      ctx.strokeStyle=vi?'rgba(239,83,80,0.62)':'rgba(171,71,188,0.62)';ctx.lineWidth=1.2;ctx.stroke();
+    });
+
+    // Colorbar
+    const cbX=W*0.935,cbY=H*0.08,cbH2=H*0.5;
+    const g3=ctx.createLinearGradient(0,cbY,0,cbY+cbH2);
+    g3.addColorStop(0,'#ffffff');g3.addColorStop(.2,'#ffe066');g3.addColorStop(.45,'#4fc3f7');g3.addColorStop(.68,'#0077aa');g3.addColorStop(1,'#010612');
+    ctx.fillStyle=g3;ctx.fillRect(cbX,cbY,12,cbH2);
+    ctx.strokeStyle='rgba(79,195,247,0.3)';ctx.lineWidth=0.5;ctx.strokeRect(cbX,cbY,12,cbH2);
+    ctx.fillStyle='rgba(100,135,165,0.88)';ctx.font='8px monospace';ctx.textAlign='left';
+    [['1.75U',0],['Uref',0.45],['0.5U',0.7],['0',1]].forEach(([l,p])=>ctx.fillText(l,cbX+15,cbY+p*cbH2+3));
+    ctx.save();ctx.translate(cbX+6,cbY-7);ctx.textAlign='center';ctx.fillStyle='rgba(79,195,247,0.7)';ctx.font='8px monospace';ctx.fillText('U m/s',0,0);ctx.restore();
+
+    // North arrow
+    const nax=W*0.94,nay=H*0.72;
+    ctx.beginPath();ctx.moveTo(nax,nay-12);ctx.lineTo(nax,nay+12);ctx.strokeStyle='rgba(120,160,200,0.5)';ctx.lineWidth=0.8;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(nax,nay-12);ctx.lineTo(nax-4,nay);ctx.lineTo(nax+4,nay);ctx.closePath();ctx.fillStyle='rgba(79,195,247,0.5)';ctx.fill();
+    ctx.fillStyle='rgba(79,195,247,0.65)';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText('N',nax,nay-16);
+
+    // Scale bar
+    const sbX=W*0.06,sbY=H*0.92,scalePx=5*domScale;
+    ctx.strokeStyle='rgba(130,165,195,0.6)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(sbX,sbY);ctx.lineTo(sbX+scalePx,sbY);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sbX,sbY-4);ctx.lineTo(sbX,sbY+4);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sbX+scalePx,sbY-4);ctx.lineTo(sbX+scalePx,sbY+4);ctx.stroke();
+    ctx.fillStyle='rgba(130,165,195,0.7)';ctx.font='8px monospace';ctx.textAlign='center';ctx.fillText('5 m',sbX+scalePx/2,sbY-6);
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+// ─── AZURE ────────────────────────────────────────────────────────────────────
+let azOk=false;
+const azL=[];
+function addAzL(msg,ok){azL.unshift({msg,ok});if(azL.length>6)azL.pop();
+  const el=document.getElementById('azlog');
+  if(el)el.innerHTML=azL.map(l=>`<div class="logrow"><span class="logt">now</span><span style="color:${l.ok?'#66bb6a':'#ffb74d'};">${l.msg}</span></div>`).join('');}
+function initAzure(){
+  if(azOk){updateAz();return;}azOk=true;
+  document.getElementById('azsvc').innerHTML=[
+    ['IoT Hub','Connected','#66bb6a'],['Stream Analytics','Running','#66bb6a'],
+    ['Digital Twins','Syncing','#66bb6a'],['Azure ML','Inferring','#66bb6a'],
+    ['Cosmos DB','Writing','#66bb6a'],['Azure Monitor','Alerting','#ffb74d'],
+    ['Event Hub','Streaming','#4fc3f7'],['Power BI','Live','#4fc3f7'],
+  ].map(([n,s,c])=>`<div class="krow"><span class="kk">${n}</span><span style="color:${c};font-size:10px;">${s}</span></div>`).join('');
+  addAzL('IoT Hub: all 247 nodes connected',true);
+  addAzL('Digital Twins: BIM graph sync complete',true);
+  addAzL('Azure ML: inference running, accuracy 96.4%',true);
+  drawAzGraph();updateAz();
+}
+function updateAz(){
+  const m=Math.round(275+Math.random()*42);
+  document.getElementById('azm').textContent=m;document.getElementById('azmb').style.width=(m/400*100)+'%';
+  document.getElementById('azp').textContent=Math.round(720+Math.random()*65);
+  document.getElementById('azsa').textContent=Math.round(1380+Math.random()*90).toLocaleString();
+  document.getElementById('azdt').textContent=Math.round(48+Math.random()*14);
+  if(Math.random()<.12)addAzL('Sensor '+SENS[Math.floor(Math.random()*SENS.length)].id+': reading ingested to IoT Hub',true);
+}
+setInterval(()=>{if(azOk)updateAz();},2600);
+
+let azGOk=false;
+function drawAzGraph(){
+  if(azGOk)return;azGOk=true;
+  const c=document.getElementById('caz');c.width=c.parentElement.clientWidth||460;
+  const ctx=c.getContext('2d'),W=c.width,H=140;
+  const nodes=[{x:.5,y:.12,l:'Azure Digital Twins',c:'#4fc3f7'},{x:.1,y:.58,l:'IoT Hub',c:'#26c6da'},{x:.9,y:.58,l:'Azure ML',c:'#9c27b0'},{x:.1,y:.94,l:'Revit BIM',c:'#e65100'},{x:.5,y:.94,l:'ANSYS FEA',c:'#ef5350'},{x:.9,y:.94,l:'Power BI',c:'#388e3c'}];
+  const edges=[[0,1],[0,2],[0,3],[0,4],[0,5],[1,3],[2,4],[4,5],[1,4]];
+  let t=0;
+  function draw(){
+    ctx.fillStyle='#060d1a';ctx.fillRect(0,0,W,H);
+    t+=.022;
+    edges.forEach(([a,b])=>{
+      const na=nodes[a],nb=nodes[b];
+      ctx.strokeStyle='rgba(79,195,247,.18)';ctx.lineWidth=.9;
+      ctx.beginPath();ctx.moveTo(na.x*W,na.y*H);ctx.lineTo(nb.x*W,nb.y*H);ctx.stroke();
+      const p=(t*.4+a*.3)%1;
+      ctx.beginPath();ctx.arc(na.x*W+(nb.x-na.x)*W*p,na.y*H+(nb.y-na.y)*H*p,2.5,0,Math.PI*2);ctx.fillStyle='#4fc3f7';ctx.fill();
+    });
+    nodes.forEach(n=>{
+      ctx.beginPath();ctx.arc(n.x*W,n.y*H,8,0,Math.PI*2);ctx.fillStyle=n.c+'33';ctx.fill();
+      ctx.beginPath();ctx.arc(n.x*W,n.y*H,5.5,0,Math.PI*2);ctx.fillStyle=n.c;ctx.fill();
+      ctx.fillStyle='rgba(165,188,208,.85)';ctx.font='8px monospace';ctx.textAlign='center';ctx.fillText(n.l,n.x*W,n.y*H+17);
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ─── AI ──────────────────────────────────────────────────────────────────────
+let aiOk=false;
+function initAI(){if(aiOk)return;aiOk=true;drawAnom();}
+function drawAnom(){
+  const c=document.getElementById('canom');if(!c)return;
+  c.width=c.parentElement.clientWidth||460;
+  const ctx=c.getContext('2d'),W=c.width,H=100,mid=H*.5;
+  let ph=0;
+  function draw(){
+    ctx.fillStyle='#060d1a';ctx.fillRect(0,0,W,H);
+    ctx.beginPath();ctx.moveTo(0,mid);
+    for(let i=0;i<W;i++){const v=Math.sin(i*.11+ph)*.28+Math.sin(i*.29+ph*.5)*.1+Math.random()*.05;ctx.lineTo(i,mid-v*mid*.75);}
+    ctx.strokeStyle='#4fc3f7';ctx.lineWidth=1.4;ctx.stroke();
+    for(let i=0;i<W;i+=1){if(Math.sin(i*.19+ph*.13)>.93){ctx.beginPath();ctx.arc(i,mid,4.5,0,Math.PI*2);ctx.fillStyle='#ef5350';ctx.fill();}}
+    ctx.strokeStyle='rgba(239,83,80,.45)';ctx.lineWidth=.9;ctx.setLineDash([3,2]);
+    ctx.beginPath();ctx.moveTo(0,mid-H*.28);ctx.lineTo(W,mid-H*.28);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(239,83,80,.75)';ctx.font='9px monospace';ctx.textAlign='right';ctx.fillText('3σ threshold',W-4,mid-H*.31);
+    ph+=.55;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+</script>
+</body>
+</html>
